@@ -1,0 +1,79 @@
+# Summary
+#     Delete an agent hosted by a non-existent computer.
+# Params
+#     AgentNames - An array of strings that contain the FQDN of agents to delete.
+# Returns
+#     None
+
+[array]$agentNames = "LAB-LEI-SQ01.SCOMUNITY.LOCAL","LAB-LEI-DC01.SCOMUNITY.LOCAL","LAB-LEI-AGT01.SCOMUNITY.LOCAL","LAB-HRE-SQLN02.SCOMUNITY.LOCAL","LAB-HRE-SQLN01.SCOMUNITY.LOCAL","LAB-HRE-SQ01.SCOMUNITY.LOCAL"
+
+
+function global:Delete-Agent([System.String[]] $agentNames)
+{
+ $NoAgentsErrorMsg = "`nNo agent names specified. Please specify the FQDN for each agent you want to delete.`n";
+
+
+
+ if ($agentNames -eq $null)
+ {
+  Write-Host $NoAgentsErrorMsg;
+  return;
+ }
+
+
+ $administration = (get-item .).ManagementGroup.GetAdministration();
+
+
+ $agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
+
+
+ $genericListType = [System.Collections.Generic.List``1]
+ $genericList = $genericListType.MakeGenericType($agentManagedComputerType)
+
+
+ $agentList = new-object $genericList.FullName
+
+
+ foreach ($agentName in $agentNames)
+ {
+  $agent = Get-Agent | where {$_.PrincipalName -eq $agentName}
+  
+  if ($agent -eq $null)
+  {
+   $msg =  "Agent '{0}' not found." -f $agentName;  
+   Write-Host $msg;
+
+
+  }
+  else
+  {
+   $agentList.Add($agent);
+  } 
+ }
+
+
+ if ($agentList.Count -eq 0)
+ {
+  Write-Host $NoAgentsErrorMsg;
+  return;
+ }
+
+
+ $genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
+ $genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
+
+
+ $agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @(,$agentList);
+
+
+
+ $msg = "`nDeleting {0} agents:`n" -f $agentReadOnlyCollection.Count;
+ Write-Host $msg;
+ foreach ($agent in $agentReadOnlyCollection)
+ {
+  Write-Host $agent.PrincipalName;
+ }
+ 
+ $administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+}
+ 
