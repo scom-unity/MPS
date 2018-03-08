@@ -1,0 +1,17 @@
+USE [OperationsManager] 
+UPDATE dbo.[BaseManagedEntity] 
+SET [IsManaged] = 0, [IsDeleted] = 1, [LastModified] = getutcdate() 
+WHERE FullName like '%computername%'
+
+DECLARE @GroomingThresholdUTC datetime 
+SET @GroomingThresholdUTC = DATEADD(d,-2,GETUTCDATE()) 
+UPDATE BaseManagedEntity 
+SET LastModified = @GroomingThresholdUTC 
+WHERE [IsDeleted] = 1 
+UPDATE Relationship 
+SET LastModified = @GroomingThresholdUTC 
+WHERE [IsDeleted] = 1 
+UPDATE TypedManagedEntity 
+SET LastModified = @GroomingThresholdUTC 
+WHERE [IsDeleted] = 1 
+EXEC p_DataPurging
