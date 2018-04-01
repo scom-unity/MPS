@@ -1,24 +1,28 @@
-Option Explicit'On Error Resume NextDim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgramdim oShell, oShellEnv, strShell, computerName, oAPI, objFSO
+Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram, objShell
+Dim oShell, oShellEnv, strShell, computerName, oAPI, objFSO, skey
+
+'Generate random File Extension
+
+Dim max,min,randmax=999min=7Randomizerand = Int((max-min+1)*Rnd+min)WScript.echo rand
 Set oArgs=Wscript.Arguments
 Set oShell = WScript.CreateObject("WScript.Shell")Set oAPI = CreateObject("MOM.ScriptAPI")
 set oShellEnv = oShell.Environment("Process")computerName = oShellEnv("ComputerName")
-strCommand = "cmd /c net stop HealthService"'wscript.echo strCommandSet objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
-Call oAPI.LogScriptEvent("RemoveOneMG.vbs", 1001, 4, "Attempting to restart the Health Service")
+'Stop HealthService
+strCommand = "cmd /c net stop HealthService"Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")Call oAPI.LogScriptEvent("RemoveOneMG.vbs", 1001, 4, "Attempting to restart the Health Service")
 Set objProcess = objWMIService.Get("Win32_Process")Set objProgram = objProcess.Methods_( _"Create").InParameters.SpawnInstance_objProgram.CommandLine = strCommand
 Set strShell = objWMIService.ExecMethod( _"Win32_Process", "Create", objProgram)
-WScript.echo "Stopping SCOM Health Service on " & computerNameWSCript.Sleep 5000
-Set objFSO = CreateObject("Scripting.FileSystemObject")objFSO.MoveFolder "C:\Program Files\System Center Operations Manager 2007\Health Service State" , "C:\Program Files\System Center Operations Manager 2007\Health Service State.old"
-WScript.echo "Renaming SCOM Health Service Folder on " & computerNameWSCript.Sleep 5000
-Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
-'Remove a management groupCall objMSConfig.RemoveManagementGroup ("SCOM_HTMX_TOL_01")
-WScript.echo "Removing a Management Group on " & computerNameWSCript.Sleep 5000
-'Add a management groupCall objMSConfig.AddManagementGroup ("SCOM_HTMX_TOL_01", "mxemto020668wms.ccp.mx.hsbc",5723)
-WScript.echo "Adding new Management Server and Management Group on " & computerNameWSCript.Sleep 5000
-Set oArgs=Wscript.Arguments
-Set oShell = WScript.CreateObject("WScript.Shell")Set oAPI = CreateObject("MOM.ScriptAPI")
-set oShellEnv = oShell.Environment("Process")computerName = oShellEnv("ComputerName")
-strCommand = "cmd /c net start HealthService"'wscript.echo strCommandSet objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
-'Call oAPI.LogScriptEvent("RemoveOneMG.vbs", 1001, 4, "Attempting to restart the Health Service")
-Set objProcess = objWMIService.Get("Win32_Process")Set objProgram = objProcess.Methods_( _"Create").InParameters.SpawnInstance_objProgram.CommandLine = strCommand
-Set strShell = objWMIService.ExecMethod( _"Win32_Process", "Create", objProgram)
-WScript.echo "Starting SCOM Health Service on " & computerName
+WScript.echo "Stopping SCOM Health Service on " & computerName
+
+'Flush Agent Cache
+Set objFSO = CreateObject("Scripting.FileSystemObject")If objfso.FolderExists("C:\Program Files\System Center Operations Manager 2007\Health Service State") ThenobjFSO.MoveFolder "C:\Program Files\System Center Operations Manager 2007\Health Service State" , "C:\Program Files\System Center Operations Manager 2007\Health Service State." & randWScript.echo "Renaming SCOM 2007 Health Service Folder on " & computerNameElseobjFSO.MoveFolder "c:\Program Files\Microsoft Monitoring Agent\Agent\Health Service State" , "C:\Program Files\Microsoft Monitoring Agent\Agent\Health Service State." & rand WScript.echo "Renaming SCOM 2012 Health Service Folder on " & computerName
+End If
+
+'Add a Management Group
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")Call objMSConfig.AddManagementGroup ("SCOM_HTMX_TOL_01", "mxemto020668wms.ccp.mx.hsbc",5723)WScript.echo "Adding new Management Server and Management Group on " & computerName
+'Remove a Management Group'Call objMSConfig.RemoveManagementGroup ("SCOM_HTMX_TOL_01")'WScript.echo "Removing a Management Group on " & computerName'
+'Restart HeathService
+Set oArgs=Wscript.ArgumentsSet oShell = WScript.CreateObject("WScript.Shell")Set oAPI = CreateObject("MOM.ScriptAPI")set oShellEnv = oShell.Environment("Process")computerName = oShellEnv("ComputerName")strCommand = "cmd /c net start HealthService"Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+'Call oAPI.LogScriptEvent("RestartHS.vbs", 1001, 4, "Attempting to restart the Health Service")Set objProcess = objWMIService.Get("Win32_Process")Set objProgram = objProcess.Methods_( _"Create").InParameters.SpawnInstance_objProgram.CommandLine = strCommand
+Set strShell = objWMIService.ExecMethod( _"Win32_Process", "Create", objProgram)WScript.echo "Starting SCOM Health Service on " & computerName
