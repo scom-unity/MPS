@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>HSBC.Management.Group.Admin</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>HSBC Management Group Admin</Name>
+    <References>
+      <Reference Alias="MicrosoftWindowsLibrary6172210">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>6.1.7221.81</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Tasks>
+      <Task ID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>addmgms.vbs</ScriptName>
+          <Arguments>MGName MSName</Arguments>
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,MSName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+MSName=oArgs(1)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Add management group
+   Call objMSConfig.AddManagementGroup(MGName,MSNAme,5723)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to add " + MGName) 
+   Else
+   wscript.echo ("Management Group " + MGName + " has been added")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("AddMGMS.vbs", 1001, 4, "Adding Management Group and Management Server")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+End If
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>RemoveMG.vbs</ScriptName>
+          <Arguments>MGName</Arguments>
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Remove management group
+   Call objMSConfig.RemoveManagementGroup(MGName)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to remove " + MGName) 
+   Else
+   wscript.echo ("Management Group " + MGName + " has been removed")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("RemoveMG.vbs", 1001, 4, "Removed Single Management Group")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+ End If
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>rs_agt.vbs</ScriptName>
+          <Arguments />
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+Call oAPI.LogScriptEvent("RestartHS.vbs", 1007, 4, "Attempting to restart the Health Service")
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+    </Tasks>
+  </Monitoring>
+  <Presentation>
+    <Folders>
+      <Folder ID="Folder_5912d94a3a614c6199d857b9f6559e55" Accessibility="Public" ParentFolder="SystemCenter!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENG" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="HSBC.Management.Group.Admin">
+          <Name>HSBC Management Group Admin</Name>
+          <Description>HSBC MAnagement Group Admin:
+Add Management Group
+Remove Management Group
+Remove all but One Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="Folder_5912d94a3a614c6199d857b9f6559e55">
+          <Name>HSBC Management Group Admin</Name>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b">
+          <Name>SCOM ADMIN - Add a Management Group</Name>
+          <Description>Add a Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3">
+          <Name>SCOM ADMIN - Remove a single Management Group</Name>
+          <Description>Removes a single Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0">
+          <Name>SCOM ADMIN - Restart SCOM Agent</Name>
+          <Description>Restart SCOM Agent</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="HSBC.Management.Group.Admin">
+          <Name>HSBC Management Group Admin</Name>
+          <Description>HSBC MAnagement Group Admin:
+Add Management Group
+Remove Management Group
+Remove all but One Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="Folder_5912d94a3a614c6199d857b9f6559e55">
+          <Name>HSBC Management Group Admin</Name>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b">
+          <Name>Add a Management Group</Name>
+          <Description>Add a Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3">
+          <Name>Remove a single Management Group</Name>
+          <Description>Removes a single Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0">
+          <Name>Restart SCOM Agent</Name>
+          <Description>Restart SCOM Agent</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
