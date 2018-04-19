@@ -1,0 +1,459 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>HSBC.Management.Group.Admin</ID>
+      <Version>1.0.0.2</Version>
+    </Identity>
+    <Name>HSBC Management Group Admin</Name>
+    <References>
+      <Reference Alias="MicrosoftWindowsLibrary6172210">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>6.1.7221.81</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Type450b99e1ceb243e68a3cefd39f3faad3" Accessibility="Public" Abstract="false" Base="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Hosted="false" Singleton="false">
+          <Property ID="AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38" Type="string" Key="false" CaseSensitive="false" Length="256" MinLength="0" />
+        </ClassType>
+      </ClassTypes>
+    </EntityTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="AttributeDiscoveryGeneratedByUIc5be9910c3f04ae08b974c3a22e1e52c" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>PerformanceCollection</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Type450b99e1ceb243e68a3cefd39f3faad3">
+            <Property TypeID="Type450b99e1ceb243e68a3cefd39f3faad3" PropertyID="AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38" />
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="AttributeDiscoveryGeneratedByUI068b55bf33ee456a89bb3624d217628e" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.RegistryDiscoverySingleProvider">
+          <ComputerName>$Target/Property[Type="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+          <AttributeName>AttributeDiscoveryRule406f54b8227f46b58f3b516a02576d90</AttributeName>
+          <Path>SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Agent Management Groups\HBEU_SCOM_PROD\Parent Health Services\0\NetworkName</Path>
+          <PathType>1</PathType>
+          <AttributeType>1</AttributeType>
+          <Frequency>86400</Frequency>
+          <ClassId>$MPElement[Name="Type450b99e1ceb243e68a3cefd39f3faad3"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Type450b99e1ceb243e68a3cefd39f3faad3"]/AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38$</Name>
+                <Value>$Data/Values/AttributeDiscoveryRule406f54b8227f46b58f3b516a02576d90$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Property[Type="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Tasks>
+      <Task ID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>addmgms.vbs</ScriptName>
+          <Arguments>MGName MSName</Arguments>
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,MSName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+MSName=oArgs(1)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Add management group
+   Call objMSConfig.AddManagementGroup(MGName,MSNAme,5723)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to add " + MGName) 
+   Else
+   wscript.echo ("Management Group " + MGName + " has been added")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("AddMGMS.vbs", 1001, 4, "Adding Management Group and Management Server")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+End If
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>RemoveMG.vbs</ScriptName>
+          <Arguments>MGName</Arguments>
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Remove management group
+   Call objMSConfig.RemoveManagementGroup(MGName)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to remove " + MGName) 
+   Else
+   wscript.echo ("Management Group " + MGName + " has been removed")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("RemoveMG.vbs", 1001, 4, "Removed Single Management Group")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+ End If
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>rs_agt.vbs</ScriptName>
+          <Arguments />
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+Call oAPI.LogScriptEvent("RestartHS.vbs", 1007, 4, "Attempting to restart the Health Service")
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="ConsoleTaskGeneratedByUId18adac151474f46aea7461ab4046601" Accessibility="Public" Enabled="true" Target="MicrosoftWindowsLibrary6172210!Microsoft.Windows.Computer" Timeout="300" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PA" TypeID="MicrosoftWindowsLibrary6172210!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>rs_flush.vbs</ScriptName>
+          <Arguments />
+          <ScriptBody>Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram, objShell
+dim oShell, oShellEnv, strShell, computerName, oAPI, objFSO, skey
+
+'Generate random File Extension
+
+Dim max,min,rand
+max=999
+min=7
+Randomize
+rand = Int((max-min+1)*Rnd+min)
+WSCript.Sleep 2000
+'WScript.echo rand
+
+Set oArgs=Wscript.Arguments
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+'Flush Agent Cache
+
+Dim MoveFldr
+
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+If objfso.FolderExists("C:\Program Files\System Center Operations Manager 2007\Health Service State") Then
+MoveFldr = "RENAME ""C:\Program Files\System Center Operations Manager 2007\Health Service State"" ""Health Service State." &amp; rand &amp; """"
+'WScript.echo "Renaming SCOM 2007 Health Service Folder on " &amp; computerName
+Else
+MoveFldr =  "RENAME ""c:\Program Files\Microsoft Monitoring Agent\Agent\Health Service State"" ""Health Service State." &amp; rand &amp; """"
+'WScript.echo "Renaming SCOM 2012 Health Service Folder on " &amp; computerName
+End If
+WSCript.Sleep 2000
+
+'Restart HealthService
+
+strCommand = "cmd /c net stop HealthService &amp; " &amp; MoveFldr &amp; " &amp; cmd /c net start HealthService"
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+Call oAPI.LogScriptEvent("RS_FLUSH.vbs", 1001, 4, "Attempting to restart the Health Service after Agent cache flushed")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod( _
+"Win32_Process", "Create", objProgram)
+
+WSCript.Sleep 2000
+'WScript.echo "Stopping SCOM Health Service on " &amp; computerName
+
+'Add a Management Group
+
+'On Error Resume Next
+'Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+'Call objMSConfig.AddManagementGroup ("SCOM_HTMX_TOL_01", "mxemto020668wms.ccp.mx.hsbc",5723)
+'WScript.echo "Adding new Management Server and Management Group on " &amp; computerName
+'WSCript.Sleep 2000
+
+'Remove a Management Group
+'Call objMSConfig.RemoveManagementGroup ("SCOM_HTMX_TOL_01")
+'WScript.echo "Removing a Management Group on " &amp; computerName</ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+    </Tasks>
+  </Monitoring>
+  <Presentation>
+    <Views>
+      <View ID="View_840a170c3d454edc9e092b1b99a42fb6" Accessibility="Public" Enabled="true" Target="Type450b99e1ceb243e68a3cefd39f3faad3" TypeID="SystemCenter!Microsoft.SystemCenter.StateViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria>
+          <InMaintenanceMode>false</InMaintenanceMode>
+        </Criteria>
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="0" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>State</Name>
+            <Id>Type450b99e1ceb243e68a3cefd39f3faad3</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Maintenance Mode</Name>
+            <Id>InMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Name</Name>
+            <Id>Name</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Path</Name>
+            <Id>Path</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="4" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Management Server Membership</Name>
+            <Id>AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="5" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Principal Name</Name>
+            <Id>PrincipalName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="6" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>DNS Name</Name>
+            <Id>DNSName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="7" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>NetBIOS Computer Name</Name>
+            <Id>NetbiosComputerName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="8" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>NetBIOS Domain Name</Name>
+            <Id>NetbiosDomainName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="9" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>IP Address</Name>
+            <Id>IPAddress</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="10" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Network Name</Name>
+            <Id>NetworkName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="11" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Active Directory SID</Name>
+            <Id>ActiveDirectoryObjectSid</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="12" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="false" Visible="false" SortOrder="Ascending">
+            <Name>Virtual Machine</Name>
+            <Id>IsVirtualMachine</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="13" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>DNS Domain Name</Name>
+            <Id>DomainDnsName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="14" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Organizational Unit</Name>
+            <Id>OrganizationalUnit</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="15" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>DNS Forest Name</Name>
+            <Id>ForestDnsName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="16" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Active Directory Site</Name>
+            <Id>ActiveDirectorySite</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="17" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Logical Processors</Name>
+            <Id>LogicalProcessors</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="18" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Display Name</Name>
+            <Id>DisplayName</Id>
+          </ColumnInfo>
+        </Presentation>
+        <Target />
+      </View>
+    </Views>
+    <Folders>
+      <Folder ID="Folder_5912d94a3a614c6199d857b9f6559e55" Accessibility="Public" ParentFolder="SystemCenter!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+    <FolderItems>
+      <FolderItem ElementID="View_840a170c3d454edc9e092b1b99a42fb6" Folder="Folder_5912d94a3a614c6199d857b9f6559e55" />
+    </FolderItems>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENG" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="HSBC.Management.Group.Admin">
+          <Name>HSBC Management Group Admin</Name>
+          <Description>HSBC Management Group Admin:
+Add Management Group
+Remove Management Group
+Remove all but One Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="Folder_5912d94a3a614c6199d857b9f6559e55">
+          <Name>HSBC Management Group Admin</Name>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b">
+          <Name>SCOM ADMIN - Add a Management Group</Name>
+          <Description>Add a Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3">
+          <Name>SCOM ADMIN - Remove a single Management Group</Name>
+          <Description>Removes a single Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0">
+          <Name>SCOM ADMIN - Restart SCOM Agent</Name>
+          <Description>Restart SCOM Agent</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUId18adac151474f46aea7461ab4046601">
+          <Name>SCOM ADMIN - Restart Agent and Flush the Cache</Name>
+          <Description>Restart Agent and Flush the Cache</Description>
+        </DisplayString>
+        <DisplayString ElementID="Type450b99e1ceb243e68a3cefd39f3faad3">
+          <Name>Windows Computer_MSDetail</Name>
+        </DisplayString>
+        <DisplayString ElementID="Type450b99e1ceb243e68a3cefd39f3faad3" SubElementID="AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38">
+          <Name>Management Server Membership</Name>
+          <Description>Management Server Membership Details</Description>
+        </DisplayString>
+        <DisplayString ElementID="AttributeDiscoveryGeneratedByUIc5be9910c3f04ae08b974c3a22e1e52c">
+          <Name>Management Server MembershipDiscovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="View_840a170c3d454edc9e092b1b99a42fb6">
+          <Name>Management Server Detail</Name>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="HSBC.Management.Group.Admin">
+          <Name>HSBC Management Group Admin</Name>
+          <Description>HSBC MAnagement Group Admin:
+Add Management Group
+Remove Management Group
+Remove all but One Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="Folder_5912d94a3a614c6199d857b9f6559e55">
+          <Name>HSBC Management Group Admin</Name>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI03fdc69c93704b00ae2375ff53579f8b">
+          <Name>Add a Management Group</Name>
+          <Description>Add a Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUIf8e5327909e448f2842989d2642ffff3">
+          <Name>Remove a single Management Group</Name>
+          <Description>Removes a single Management Group</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUI12b3f6b386c44b78951e96e98bf831d0">
+          <Name>Restart SCOM Agent</Name>
+          <Description>Restart SCOM Agent</Description>
+        </DisplayString>
+        <DisplayString ElementID="ConsoleTaskGeneratedByUId18adac151474f46aea7461ab4046601">
+          <Name>SCOM ADMIN - Restart Agent and Flush the Cache</Name>
+          <Description>Restart Agent and Flush the Cache</Description>
+        </DisplayString>
+        <DisplayString ElementID="Type450b99e1ceb243e68a3cefd39f3faad3">
+          <Name>Windows Computer_MSDetail</Name>
+        </DisplayString>
+        <DisplayString ElementID="Type450b99e1ceb243e68a3cefd39f3faad3" SubElementID="AttributeDiscoveryGeneratedByUIde3d7b1641aa487c935c7e8c1d644d38">
+          <Name>Management Server Membership</Name>
+          <Description>Management Server Membership Details</Description>
+        </DisplayString>
+        <DisplayString ElementID="AttributeDiscoveryGeneratedByUIc5be9910c3f04ae08b974c3a22e1e52c">
+          <Name>Management Server MembershipDiscovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="View_840a170c3d454edc9e092b1b99a42fb6">
+          <Name>Management Server Detail</Name>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
