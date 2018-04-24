@@ -1,0 +1,5 @@
+$AgentClass = Get-Monitoringclass -name "Microsoft.SystemCenter.Agent"
+$Agents = Get-MonitoringObject -MonitoringClass:$AgentClass
+$GreyAgents = $Agents | Where-Object {($_.IsAvailable -eq $false) -and (!($_.HealthState -eq "Uninitialized")) -and ($_.InMaintenanceMode -eq $False)}
+$file="C:\Support\AgentState2007.csv"
+$GreyAgents | Export-CSV -NoTypeInformation -path $file 

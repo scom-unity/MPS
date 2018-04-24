@@ -1,0 +1,6 @@
+Import-Module OperationsManager
+$AgentClass = Get-SCOMClass -name "Microsoft.SystemCenter.Agent"
+$Agents = Get-SCOMMonitoringObject -Class:$AgentClass
+$GreyAgents = $Agents | Where-Object {($_.IsAvailable -eq $false) -and (!($_.HealthState -eq "Uninitialized")) -and ($_.InMaintenanceMode -eq $False)}
+$file="C:\Support\AgentState2012.csv"
+$GreyAgents | Export-CSV -NoTypeInformation -path $file
