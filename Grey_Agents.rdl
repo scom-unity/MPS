@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <Body>
+    <ReportItems>
+      <Textbox Name="Textbox2">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Last Refresh:  </Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value>=Format(now,"dd.MM.yyyy  HH:mm:ss")</Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style />
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>Textbox2</rd:DefaultName>
+        <Top>1.06694in</Top>
+        <Left>0in</Left>
+        <Height>0.1875in</Height>
+        <Width>2.60417in</Width>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+      </Textbox>
+      <Textbox Name="textbox1">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Grey Agents / Unavailable</Value>
+                <Style>
+                  <FontFamily>Tahoma</FontFamily>
+                  <FontSize>28pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                  <TextDecoration>Underline</TextDecoration>
+                  <Color>DarkBlue</Color>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style />
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>textbox1</rd:DefaultName>
+        <Height>0.48361in</Height>
+        <Width>5.12846in</Width>
+        <ZIndex>1</ZIndex>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+      </Textbox>
+      <Tablix Name="Tablix2">
+        <TablixCorner>
+          <TablixCornerRows>
+            <TablixCornerRow>
+              <TablixCornerCell>
+                <CellContents>
+                  <Textbox Name="Textbox19">
+                    <CanGrow>true</CanGrow>
+                    <KeepTogether>true</KeepTogether>
+                    <Paragraphs>
+                      <Paragraph>
+                        <TextRuns>
+                          <TextRun>
+                            <Value>Server</Value>
+                            <Style>
+                              <FontFamily>Tahoma</FontFamily>
+                              <FontWeight>Bold</FontWeight>
+                              <Color>White</Color>
+                            </Style>
+                          </TextRun>
+                        </TextRuns>
+                        <Style />
+                      </Paragraph>
+                    </Paragraphs>
+                    <rd:DefaultName>Textbox19</rd:DefaultName>
+                    <Style>
+                      <Border>
+                        <Style>None</Style>
+                      </Border>
+                      <BackgroundColor>SteelBlue</BackgroundColor>
+                      <PaddingLeft>2pt</PaddingLeft>
+                      <PaddingRight>2pt</PaddingRight>
+                      <PaddingTop>2pt</PaddingTop>
+                      <PaddingBottom>2pt</PaddingBottom>
+                    </Style>
+                  </Textbox>
+                </CellContents>
+              </TablixCornerCell>
+            </TablixCornerRow>
+          </TablixCornerRows>
+        </TablixCorner>
+        <TablixBody>
+          <TablixColumns>
+            <TablixColumn>
+              <Width>2.1725in</Width>
+            </TablixColumn>
+          </TablixColumns>
+          <TablixRows>
+            <TablixRow>
+              <Height>0.25in</Height>
+              <TablixCells>
+                <TablixCell>
+                  <CellContents>
+                    <Textbox Name="AvailabilityLastModified">
+                      <CanGrow>true</CanGrow>
+                      <KeepTogether>true</KeepTogether>
+                      <Paragraphs>
+                        <Paragraph>
+                          <TextRuns>
+                            <TextRun>
+                              <Value>=Fields!AvailabilityLastModified.Value</Value>
+                              <Style>
+                                <FontFamily>Tahoma</FontFamily>
+                              </Style>
+                            </TextRun>
+                          </TextRuns>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                          </Style>
+                        </Paragraph>
+                      </Paragraphs>
+                      <rd:DefaultName>AvailabilityLastModified</rd:DefaultName>
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                        </Border>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
+                      </Style>
+                    </Textbox>
+                  </CellContents>
+                </TablixCell>
+              </TablixCells>
+            </TablixRow>
+          </TablixRows>
+        </TablixBody>
+        <TablixColumnHierarchy>
+          <TablixMembers>
+            <TablixMember>
+              <Group Name="ColumnGroup">
+                <GroupExpressions>
+                  <GroupExpression />
+                </GroupExpressions>
+              </Group>
+              <TablixHeader>
+                <Size>0.25in</Size>
+                <CellContents>
+                  <Textbox Name="Textbox17">
+                    <CanGrow>true</CanGrow>
+                    <KeepTogether>true</KeepTogether>
+                    <Paragraphs>
+                      <Paragraph>
+                        <TextRuns>
+                          <TextRun>
+                            <Value>Availability Last Modified</Value>
+                            <Style>
+                              <FontFamily>Tahoma</FontFamily>
+                              <FontWeight>Bold</FontWeight>
+                              <Color>White</Color>
+                            </Style>
+                          </TextRun>
+                        </TextRuns>
+                        <Style>
+                          <TextAlign>Left</TextAlign>
+                        </Style>
+                      </Paragraph>
+                    </Paragraphs>
+                    <rd:DefaultName>Textbox17</rd:DefaultName>
+                    <Style>
+                      <Border>
+                        <Style>None</Style>
+                      </Border>
+                      <BackgroundColor>SteelBlue</BackgroundColor>
+                      <PaddingLeft>2pt</PaddingLeft>
+                      <PaddingRight>2pt</PaddingRight>
+                      <PaddingTop>2pt</PaddingTop>
+                      <PaddingBottom>2pt</PaddingBottom>
+                    </Style>
+                  </Textbox>
+                </CellContents>
+              </TablixHeader>
+            </TablixMember>
+          </TablixMembers>
+        </TablixColumnHierarchy>
+        <TablixRowHierarchy>
+          <TablixMembers>
+            <TablixMember>
+              <Group Name="DisplayName">
+                <GroupExpressions>
+                  <GroupExpression>=Fields!DisplayName.Value</GroupExpression>
+                </GroupExpressions>
+              </Group>
+              <SortExpressions>
+                <SortExpression>
+                  <Value>=Fields!DisplayName.Value</Value>
+                </SortExpression>
+              </SortExpressions>
+              <TablixHeader>
+                <Size>2.95596in</Size>
+                <CellContents>
+                  <Textbox Name="DisplayName">
+                    <CanGrow>true</CanGrow>
+                    <KeepTogether>true</KeepTogether>
+                    <Paragraphs>
+                      <Paragraph>
+                        <TextRuns>
+                          <TextRun>
+                            <Value>=Fields!DisplayName.Value</Value>
+                            <Style>
+                              <FontFamily>Tahoma</FontFamily>
+                            </Style>
+                          </TextRun>
+                        </TextRuns>
+                        <Style />
+                      </Paragraph>
+                    </Paragraphs>
+                    <rd:DefaultName>DisplayName</rd:DefaultName>
+                    <Style>
+                      <Border>
+                        <Style>None</Style>
+                      </Border>
+                      <PaddingLeft>2pt</PaddingLeft>
+                      <PaddingRight>2pt</PaddingRight>
+                      <PaddingTop>2pt</PaddingTop>
+                      <PaddingBottom>2pt</PaddingBottom>
+                    </Style>
+                  </Textbox>
+                </CellContents>
+              </TablixHeader>
+            </TablixMember>
+          </TablixMembers>
+        </TablixRowHierarchy>
+        <DataSetName>Grey_Agents</DataSetName>
+        <Top>0.52528in</Top>
+        <Left>0in</Left>
+        <Height>0.5in</Height>
+        <Width>5.12846in</Width>
+        <ZIndex>2</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </Tablix>
+    </ReportItems>
+    <Height>1.29375in</Height>
+    <Style>
+      <Border>
+        <Color>White</Color>
+        <Style>Solid</Style>
+      </Border>
+    </Style>
+  </Body>
+  <Width>5.15208in</Width>
+  <Page>
+    <PageHeight>11.69in</PageHeight>
+    <PageWidth>8.27in</PageWidth>
+    <LeftMargin>1in</LeftMargin>
+    <RightMargin>1in</RightMargin>
+    <TopMargin>1in</TopMargin>
+    <BottomMargin>1in</BottomMargin>
+    <Style />
+  </Page>
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="OperationsManager">
+      <DataSourceReference>OperationsManager</DataSourceReference>
+      <rd:SecurityType>Windows</rd:SecurityType>
+      <rd:DataSourceID>392f0d05-9455-43c1-b891-3d4586250863</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <DataSets>
+    <DataSet Name="Grey_Agents">
+      <Query>
+        <DataSourceName>OperationsManager</DataSourceName>
+        <CommandText>SELECT ManagedEntityGenericView.DisplayName, ManagedEntityGenericView.AvailabilityLastModified
+ FROM ManagedEntityGenericView
+ INNER JOIN ManagedTypeView ON ManagedEntityGenericView.MonitoringClassId = ManagedTypeView.Id
+ WHERE (ManagedTypeView.Name = 'microsoft.systemCenter.agent') AND (ManagedEntityGenericView.IsAvailable = 0)
+ ORDER BY ManagedEntityGenericView.DisplayName</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="DisplayName">
+          <DataField>DisplayName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="AvailabilityLastModified">
+          <DataField>AvailabilityLastModified</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <EmbeddedImages>
+    <EmbeddedImage Name="RNLIlogo">
+      <MIMEType>image/gif</MIMEType>
+      <ImageData>R0lGODlhiwBkAPcAAO4+M4CAs0BAjAA4dsDA2fDw9hAQcICcu8DO3f/eG2BgoCAgeeDg7FBQljAwg3BwqaCgxjw6ZdDQ4wAcbpCQvAAqcmCDqu9IMeA+N7Cw0FB2oeDn7vWEKPDz9/7z8gAOai05aQAVbP7VHDBdkPJuZfaembDB1ZU8TO9JPwAuc/3LHrM9RPzBHwAZbfFcLtDa5vm2soY7UNE9OwAHaJCow1o6XfqsInc7VBBEf/rCv/BVTPeOJ/zb2UBqmA84cvvPzAAEZ6C1zPN6cvu2IXCPsgAjcKQ8SAA1dfSGfwALafWSjPFiWQAxdMI9P2k7WSBRh/R6Kh45bv3n5QAncfiqpQAgb/JmLfBSMEs6YfNwK/miJPiYJQASa/y7IPidJa9QQvqxIvy+IPJkLRAxefzCH1ByoBA7fPzAHyBIhPqwIhBBfhA1eiBCgyBLhS1Qgv///wAAZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4zLWMwMTEgNjYuMTQ1NjYxLCAyMDEyLzAyLzA2LTE0OjU2OjI3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M2IChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo1RkRFRTdDQ0Y5MzgxMUUyOEYwNDhDODQxMzhGQzJDMiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo1RkRFRTdDREY5MzgxMUUyOEYwNDhDODQxMzhGQzJDMiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjVGREVFN0NBRjkzODExRTI4RjA0OEM4NDEzOEZDMkMyIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjVGREVFN0NCRjkzODExRTI4RjA0OEM4
+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</ImageData>
+    </EmbeddedImage>
+  </EmbeddedImages>
+  <Language>en-US</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>44e4f98b-01fb-48e6-b117-8998fa6a6c32</rd:ReportID>
+</Report>
