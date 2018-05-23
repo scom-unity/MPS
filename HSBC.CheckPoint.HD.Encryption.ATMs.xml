@@ -1,0 +1,374 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>HSBC.CheckPoint.HD.Encryption.ATMs</ID>
+      <Version>1.1.1.26</Version>
+    </Identity>
+    <Name>HSBC CheckPoint HD Encryption ATMs</Name>
+    <References>
+      <Reference Alias="MicrosoftWindowsLibrary7585010">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8433.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.0.8433.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Typeda958bce61c84262bff679a4b28a45f3" Accessibility="Public" Abstract="false" Base="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Client.OperatingSystem" Hosted="true" Singleton="false" Extension="false">
+          <Property ID="HSBC.CheckPoint.Encryption.Value" Type="string" AutoIncrement="false" Key="false" CaseSensitive="false" MaxLength="256" MinLength="0" Required="false" Scale="0" />
+          <Property ID="HSBC.CheckPoint.Encryption.Exists" Type="string" AutoIncrement="false" Key="false" CaseSensitive="false" MaxLength="256" MinLength="0" Required="false" Scale="0" />
+        </ClassType>
+      </ClassTypes>
+    </EntityTypes>
+    <MonitorTypes>
+      <UnitMonitorType ID="HSBC.CheckPoint.HD.Encryption.ATMs.MonitorType" Accessibility="Internal">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="RegValueMatch" NoDetection="false" />
+          <MonitorTypeState ID="RegValueDoesNotMatch" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration />
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="RegDS" TypeID="MicrosoftWindowsLibrary7585010!Microsoft.Windows.RegistryProvider">
+              <ComputerName>$Target/Host/Property[Type="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+              <RegistryAttributeDefinitions>
+                <RegistryAttributeDefinition>
+                  <AttributeName>clientStatus</AttributeName>
+                  <Path>SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot\clientStatus</Path>
+                  <PathType>1</PathType>
+                  <!-- 0=regKey 1=regValue -->
+                  <AttributeType>1</AttributeType>
+                  <!-- 0=CheckIfExists (Boolean) 1=treat data as (String) 2=treat data as (Integer) -->
+                </RegistryAttributeDefinition>
+              </RegistryAttributeDefinitions>
+              <Frequency>60</Frequency>
+            </DataSource>
+            <ConditionDetection ID="CDGood" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Values/clientStatus</XPathQuery>
+                    <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+                  </ValueExpression>
+                  <Operator>Greater</Operator>
+                  <!-- Common options for SimpleExpression Operator are "Equal" "NotEqual" "Greater" "Less" "GreaterEqual" "LessEqual" "Like" "NotLike" -->
+                  <ValueExpression>
+                    <Value Type="String">0</Value>
+                    <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="CDBad" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Values/clientStatus</XPathQuery>
+                    <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+                  </ValueExpression>
+                  <Operator>LessEqual</Operator>
+                  <!-- Common options for SimpleExpression Operator are "Equal" "NotEqual" "Greater" "Less" "GreaterEqual" "LessEqual" "Like" "NotLike" -->
+                  <ValueExpression>
+                    <Value Type="String">0</Value>
+                    <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="RegValueMatch">
+              <Node ID="CDGood">
+                <Node ID="RegDS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="RegValueDoesNotMatch">
+              <Node ID="CDBad">
+                <Node ID="RegDS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+    </MonitorTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="AttributeDiscoveryGeneratedByUI0175ebdbb6554426b0fa9b064462796e" Enabled="false" Target="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Client.OperatingSystem" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>PerformanceCollection</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Typeda958bce61c84262bff679a4b28a45f3">
+            <Property TypeID="Typeda958bce61c84262bff679a4b28a45f3" PropertyID="HSBC.CheckPoint.Encryption.Exists" />
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="AttributeDiscoveryGeneratedByUIcb7adc22bb5f4054a84170dc26757762" TypeID="MicrosoftWindowsLibrary7585010!Microsoft.Windows.RegistryDiscoverySingleProvider">
+          <ComputerName>$Target/Host/Property[Type="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+          <AttributeName>AttributeDiscoveryRule547cf8e2772340559ca0ddb10bde319b</AttributeName>
+          <Path>SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot</Path>
+          <PathType>0</PathType>
+          <AttributeType>0</AttributeType>
+          <Frequency>180</Frequency>
+          <ClassId>$MPElement[Name="Typeda958bce61c84262bff679a4b28a45f3"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Typeda958bce61c84262bff679a4b28a45f3"]/HSBC.CheckPoint.Encryption.Exists$</Name>
+                <Value>$Data/Values/AttributeDiscoveryRule547cf8e2772340559ca0ddb10bde319b$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Host/Property[Type="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="AttributeDiscoveryGeneratedByUI0e538d97c9f5444d90c042a9ad8053fd" Enabled="false" Target="Typeda958bce61c84262bff679a4b28a45f3" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>PerformanceCollection</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Typeda958bce61c84262bff679a4b28a45f3">
+            <Property TypeID="Typeda958bce61c84262bff679a4b28a45f3" PropertyID="HSBC.CheckPoint.Encryption.Value" />
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="AttributeDiscoveryGeneratedByUI405cbdcdd79445b6b5a054b8e521c1c1" TypeID="MicrosoftWindowsLibrary7585010!Microsoft.Windows.RegistryDiscoverySingleProvider">
+          <ComputerName>$Target/Host/Property[Type="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+          <AttributeName>AttributeDiscoveryRule510e1b99ad2b4850bb58979c1f36947b</AttributeName>
+          <Path>SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot\clientstatus</Path>
+          <PathType>1</PathType>
+          <AttributeType>1</AttributeType>
+          <Frequency>180</Frequency>
+          <ClassId>$MPElement[Name="Typeda958bce61c84262bff679a4b28a45f3"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Typeda958bce61c84262bff679a4b28a45f3"]/HSBC.CheckPoint.Encryption.Value$</Name>
+                <Value>$Data/Values/AttributeDiscoveryRule510e1b99ad2b4850bb58979c1f36947b$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Host/Property[Type="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Monitors>
+      <UnitMonitor ID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor" Accessibility="Public" Enabled="false" Target="MicrosoftWindowsLibrary7585010!Microsoft.Windows.Client.OperatingSystem" ParentMonitorID="Health!System.Health.ConfigurationState" Remotable="true" Priority="Normal" TypeID="HSBC.CheckPoint.HD.Encryption.ATMs.MonitorType" ConfirmDelivery="true">
+        <Category>Custom</Category>
+        <AlertSettings AlertMessage="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor.Alert.Message">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>MatchMonitorHealth</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="Success" MonitorTypeStateID="RegValueMatch" HealthState="Success" />
+          <OperationalState ID="Error" MonitorTypeStateID="RegValueDoesNotMatch" HealthState="Error" />
+        </OperationalStates>
+        <Configuration />
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <Views>
+      <View ID="View_6fb7368219e24963bf0f2aac5ebdba7c" Accessibility="Public" Enabled="true" Target="Typeda958bce61c84262bff679a4b28a45f3" TypeID="SystemCenter!Microsoft.SystemCenter.StateViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria>
+          <InMaintenanceMode>false</InMaintenanceMode>
+        </Criteria>
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="0" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>State</Name>
+            <Id>Typeda958bce61c84262bff679a4b28a45f3-*-b0bdd95d-723b-7876-a21f-84796300fa3c-*-Health</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Maintenance Mode</Name>
+            <Id>InMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Name</Name>
+            <Id>Name</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Path</Name>
+            <Id>Path</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="4" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Display Name</Name>
+            <Id>System.Entity/DisplayName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="5" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Operating System Version</Name>
+            <Id>Microsoft.Windows.OperatingSystem/OSVersion</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="6" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Operating System Version Display Name</Name>
+            <Id>Microsoft.Windows.OperatingSystem/OSVersionDisplayName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="7" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Product Type</Name>
+            <Id>Microsoft.Windows.OperatingSystem/ProductType</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="8" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Build Number</Name>
+            <Id>Microsoft.Windows.OperatingSystem/BuildNumber</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="9" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>CSD Version</Name>
+            <Id>Microsoft.Windows.OperatingSystem/CSDVersion</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="10" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Service Pack Version</Name>
+            <Id>Microsoft.Windows.OperatingSystem/ServicePackVersion</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="11" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Serial Number</Name>
+            <Id>Microsoft.Windows.OperatingSystem/SerialNumber</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="12" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Install Date</Name>
+            <Id>Microsoft.Windows.OperatingSystem/InstallDate</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="13" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>System Drive</Name>
+            <Id>Microsoft.Windows.OperatingSystem/SystemDrive</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="14" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Windows Directory</Name>
+            <Id>Microsoft.Windows.OperatingSystem/WindowsDirectory</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="15" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Physical Memory (MB)</Name>
+            <Id>Microsoft.Windows.OperatingSystem/PhysicalMemory</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="16" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Logical Processors</Name>
+            <Id>Microsoft.Windows.OperatingSystem/LogicalProcessors</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="17" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Country Code</Name>
+            <Id>Microsoft.Windows.OperatingSystem/CountryCode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="18" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Locale</Name>
+            <Id>Microsoft.Windows.OperatingSystem/Locale</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="19" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Description</Name>
+            <Id>Microsoft.Windows.OperatingSystem/Description</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="20" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Manufacturer</Name>
+            <Id>Microsoft.Windows.OperatingSystem/Manufacturer</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="21" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>OS Language</Name>
+            <Id>Microsoft.Windows.OperatingSystem/OSLanguage</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="22" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Minor Version</Name>
+            <Id>Microsoft.Windows.OperatingSystem/MinorVersion</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="23" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Major Version</Name>
+            <Id>Microsoft.Windows.OperatingSystem/MajorVersion</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="24" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>HSBC CheckPoint Encryption Exists</Name>
+            <Id>Typeda958bce61c84262bff679a4b28a45f3/HSBC.CheckPoint.Encryption.Exists</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="25" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>HSBC CheckPoint Encryption Value</Name>
+            <Id>Typeda958bce61c84262bff679a4b28a45f3/HSBC.CheckPoint.Encryption.Value</Id>
+          </ColumnInfo>
+        </Presentation>
+        <Target />
+      </View>
+    </Views>
+    <Folders>
+      <Folder ID="Folder_38904aacea964f5197fda448eb33998f" Accessibility="Public" ParentFolder="SystemCenter!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+    <FolderItems>
+      <FolderItem ElementID="View_6fb7368219e24963bf0f2aac5ebdba7c" ID="id595c07da73544969b92a5d5c2cebd7e" Folder="Folder_38904aacea964f5197fda448eb33998f" />
+    </FolderItems>
+    <StringResources>
+      <StringResource ID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor.Alert.Message" />
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="HSBC.CheckPoint.HD.Encryption.ATMs">
+          <Name>HSBC CheckPoint HD Encryption ATMs</Name>
+          <Description>Management Pack to monitor the CheckPoint Encryption Status</Description>
+        </DisplayString>
+        <DisplayString ElementID="Folder_38904aacea964f5197fda448eb33998f">
+          <Name>HSBC CheckPoint HD Encryption ATMs</Name>
+        </DisplayString>
+        <DisplayString ElementID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor">
+          <Name>HSBC - CheckPoint HD Encryption Status Monitor</Name>
+        </DisplayString>
+        <DisplayString ElementID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor" SubElementID="Success">
+          <Name>RegValueMatch</Name>
+        </DisplayString>
+        <DisplayString ElementID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor" SubElementID="Error">
+          <Name>RegValueDoesNotMatch</Name>
+        </DisplayString>
+        <DisplayString ElementID="HSBC.CheckPoint.HD.Encryption.ATMs.Monitor.Alert.Message">
+          <Name>HSBC - CheckPoint HD Encryption Status Monitor Alert</Name>
+          <Description>HSBC - CheckPoint HD Encryption Status Monitor detected the registry value at HKLM\SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot does not meet expected value of 1</Description>
+        </DisplayString>
+        <DisplayString ElementID="AttributeDiscoveryGeneratedByUI0e538d97c9f5444d90c042a9ad8053fd">
+          <Name>HSBC CheckPoint Encryption Value Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="AttributeDiscoveryGeneratedByUI0175ebdbb6554426b0fa9b064462796e">
+          <Name>HSBC CheckPoint Encryption Exists Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="Typeda958bce61c84262bff679a4b28a45f3">
+          <Name>Windows Client Operating System CP HD Encryption Exists</Name>
+        </DisplayString>
+        <DisplayString ElementID="Typeda958bce61c84262bff679a4b28a45f3" SubElementID="HSBC.CheckPoint.Encryption.Exists">
+          <Name>HSBC CheckPoint Encryption Exists</Name>
+          <Description>SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot\clientStatus</Description>
+        </DisplayString>
+        <DisplayString ElementID="Typeda958bce61c84262bff679a4b28a45f3" SubElementID="HSBC.CheckPoint.Encryption.Value">
+          <Name>HSBC CheckPoint Encryption Value</Name>
+        </DisplayString>
+        <DisplayString ElementID="View_6fb7368219e24963bf0f2aac5ebdba7c">
+          <Name>HSBC CheckPoint Encryption Status</Name>
+          <Description>SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+    <LanguagePack ID="ENG" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Typeda958bce61c84262bff679a4b28a45f3" SubElementID="HSBC.CheckPoint.Encryption.Exists">
+          <Name>HSBC CheckPoint Encryption Exists</Name>
+          <Description>Monitoring Key Exists: SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot</Description>
+        </DisplayString>
+        <DisplayString ElementID="Typeda958bce61c84262bff679a4b28a45f3" SubElementID="HSBC.CheckPoint.Encryption.Value">
+          <Name>HSBC CheckPoint Encryption Value</Name>
+          <Description>Monitoring Value Integer: SOFTWARE\CheckPoint\Endpoint Security\Full Disk Encryption\Status\Current Boot\clientStatus</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
