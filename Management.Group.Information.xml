@@ -1,0 +1,502 @@
+<ManagementPack ContentReadable="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Manifest>
+    <Identity>
+      <ID>Management.Group.Information</ID>
+      <Version>1.0.0.19</Version>
+    </Identity>
+    <Name>Management.Group.Information</Name>
+    <References>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Management.Group.Information.Class" Base="Windows!Microsoft.Windows.Computer" Accessibility="Internal" Abstract="false" Hosted="false" Singleton="false">
+          <Property ID="MGList" Type="string" />
+          <Property ID="MSMembership" Type="string" />
+        </ClassType>
+      </ClassTypes>
+    </EntityTypes>
+    <ModuleTypes>
+      <DataSourceModuleType ID="Management.Server.Membership.Discovery.DS" Accessibility="Public" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" name="MGName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" name="Frequency" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="Override.MGName" Selector="$Config/MGName$" ParameterType="string" />
+          <OverrideableParameter ID="Override.Frequency" Selector="$Config/Frequency$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="TimedScript.DiscoveryProvider.MSMembershipDiscovery" TypeID="Windows!Microsoft.Windows.TimedScript.DiscoveryProvider">
+                <IntervalSeconds>3600</IntervalSeconds>
+                <SyncTime />
+                <ScriptName>MSMembershipDiscovery.vbs</ScriptName>
+                <Arguments>$MPElement$ $Target/Id$ $Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$ $Config/MGName$</Arguments>
+                <ScriptBody>
+  
+                  Option Explicit
+
+                  Dim oArgs
+                  Set oArgs = WScript.Arguments
+                  if oArgs.Count &lt; 4 Then
+                  Wscript.Quit -1
+                  End If
+
+                  SourceId = oArgs(0)
+                  ManagedEntityId = oArgs(1)
+                  TargetComputer = oArgs(2)
+                  MGName = oArgs(3)
+
+                  Dim StartTime,EndTime,sTime
+                  StartTime = Now
+
+                  dim oAPI, oDiscoveryData, oInst, SourceID, ManagedEntityId, TargetComputer, MGName, output
+
+                  Set oAPI = CreateObject("MOM.ScriptAPI")
+                  Set oDiscoveryData = oAPI.CreateDiscoveryData(0, SourceId, ManagedEntityId)
+
+                  Call oAPI.LogScriptEvent("MSMembershipDiscovery.vbs", 7000, 0, "Starting script")
+                  Dim oShell
+
+                  Set oShell = CreateObject("WScript.Shell")
+
+
+                  output=""
+                  
+                  output = oShell.RegRead("HKLM\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Agent Management Groups\" &amp; MGName &amp; "\Parent Health Services\0\NetworkName")
+                  
+
+                  If (output = "") Then
+                  Call oAPI.LogScriptEvent("MSMembershipDiscovery.vbs", 7001, 0, "No objects discovered")
+                  Else
+                  set oInst = oDiscoveryData.CreateClassInstance("$MPElement[Name='Management.Group.Information.Class']$")
+                  call oInst.AddProperty("$MPElement[Name='Windows!Microsoft.Windows.Computer']/PrincipalName$", TargetComputer)
+                  call oInst.AddProperty("$MPElement[Name='Management.Group.Information.Class']/MSMembership$", output)
+                  oDiscoveryData.AddInstance(oInst)
+                  End If
+
+                  EndTime = Now
+                  sTime = DateDiff("s", StartTime, EndTime)
+
+                  Call oAPI.LogScriptEvent("MSMembershipDiscovery.vbs", 7002, 0, "Ending script.  Script runtime in seconds: " &amp; sTime)
+
+                  Call oAPI.Return(oDiscoveryData)
+                  
+                </ScriptBody>
+                <TimeoutSeconds>300</TimeoutSeconds>
+              </DataSource>
+            </MemberModules>
+            <Composition>
+              <Node ID="TimedScript.DiscoveryProvider.MSMembershipDiscovery" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+      </DataSourceModuleType>
+    </ModuleTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="Management.Group.Information.Management.Server.Membership.Discovery" Target="SC!Microsoft.SystemCenter.Agent" Enabled="false" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Management.Group.Information.Class">
+            <Property TypeID="Management.Group.Information.Class" PropertyID="MSMembership" />
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Management.Server.Membership.Discovery.DS">
+          <MGName>HBEU_SCOM-PROD</MGName>
+          <Frequency>86400</Frequency>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="Management.Group.Information.Management.Group.List.Discovery" Target="SC!Microsoft.SystemCenter.Agent" Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes />
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedScript.DiscoveryProvider">
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime />
+          <ScriptName>MGListDiscovery.vbs</ScriptName>
+          <Arguments>$MPElement$ $Target/Id$ $Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Arguments>
+          <ScriptBody>
+Option Explicit
+
+Dim oArgs
+Set oArgs = WScript.Arguments
+if oArgs.Count &lt; 3 Then
+   Wscript.Quit -1
+End If
+
+SourceId = oArgs(0)
+ManagedEntityId = oArgs(1)
+TargetComputer = oArgs(2)
+
+Dim StartTime,EndTime,sTime
+StartTime = Now
+
+dim oAPI, oDiscoveryData, oInst, SourceID, ManagedEntityId, TargetComputer, output
+
+Set oAPI = CreateObject("MOM.ScriptAPI")
+Set oDiscoveryData = oAPI.CreateDiscoveryData(0, SourceId, ManagedEntityId)
+ 
+Call oAPI.LogScriptEvent("MGListDiscovery.vbs", 6000, 0, "Starting script")
+
+Dim objMSConfig
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+Dim collMG
+Set collMG = objMSConfig.GetManagementGroups()
+
+output=""
+Dim mgItem
+For Each mgItem In collMG
+if collMG.count &gt; 0 then
+
+if output = ""  then
+output = CStr(mgItem.ManagementGroupName)
+else
+output = output &amp; "," &amp; CStr(mgItem.ManagementGroupName)
+end if
+
+end if
+Next
+
+If (output = "") Then
+  Call oAPI.LogScriptEvent("MGListDiscovery.vbs", 6001, 0, "No objects discovered")
+Else
+  set oInst = oDiscoveryData.CreateClassInstance("$MPElement[Name='Management.Group.Information.Class']$")
+  call oInst.AddProperty("$MPElement[Name='Windows!Microsoft.Windows.Computer']/PrincipalName$", TargetComputer)
+  call oInst.AddProperty("$MPElement[Name='Management.Group.Information.Class']/MGList$", output)
+  oDiscoveryData.AddInstance(oInst)
+End If
+
+EndTime = Now
+sTime = DateDiff("s", StartTime, EndTime)
+
+Call oAPI.LogScriptEvent("MGListDiscovery.vbs", 6002, 0, "Ending script.  Script runtime in seconds: " &amp; sTime)
+
+Call oAPI.Return(oDiscoveryData)
+  </ScriptBody>
+          <TimeoutSeconds>300</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Tasks>
+      <Task ID="Management.Group.Information.Add.Management.Group.Task" Accessibility="Public" Target="Management.Group.Information.Class" Enabled="true" Timeout="300" Remotable="true">
+        <Category>Maintenance</Category>
+        <WriteAction ID="WA" TypeID="Windows!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>AddManagementGroup.vbs</ScriptName>
+          <Arguments>MGName MSName</Arguments>
+          <ScriptBody>
+    Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,MSName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+MSName=oArgs(1)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Add management group
+   Call objMSConfig.AddManagementGroup(MGName,MSNAme,5723)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to add " &amp; MGName) 
+   Else
+   wscript.echo ("Management Group " &amp; MGName &amp; " has been added")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("AddMGMS.vbs", 1001, 4, "Adding Management Group and Management Server")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_("Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod("Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+End If
+  </ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="Management.Group.Information.Remove.Single.Management.Group.Task." Accessibility="Public" Target="Management.Group.Information.Class" Enabled="true" Timeout="300" Remotable="true">
+        <Category>Maintenance</Category>
+        <WriteAction ID="WA" TypeID="Windows!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>RemoveSingleManagementGroup.vbs</ScriptName>
+          <Arguments>MGName</Arguments>
+          <ScriptBody>
+Option Explicit
+'On Error Resume Next
+Dim oArgs,MGName,objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+MGName=oArgs(0)
+
+'Create COM object to get MGs
+Set objMSConfig = CreateObject("AgentConfigManager.MgmtSvcCfg")
+
+
+  'Remove management group
+   Call objMSConfig.RemoveManagementGroup(MGName)
+   If Err.number &lt;&gt; 0 Then
+   wscript.echo ("Failed to remove " &amp; MGName) 
+   Else
+   wscript.echo ("Management Group " &amp; MGName &amp; " has been removed")
+
+
+''Matt Taylor's code to restart Health Service (added commands for offline defrag
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Call oAPI.LogScriptEvent("RemoveMG.vbs", 1001, 4, "Removed Single Management Group")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_( _
+"Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod("Win32_Process", "Create", objProgram)
+
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+
+ End If
+    
+    </ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="Management.Group.Information.Restart.Agent.and.Flush.Cache.Task" Accessibility="Public" Target="Management.Group.Information.Class" Enabled="true" Timeout="300" Remotable="true">
+        <Category>Maintenance</Category>
+        <WriteAction ID="WA" TypeID="Windows!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>RestartSCOMAgentFlushCache.vbs</ScriptName>
+          <Arguments />
+          <ScriptBody>
+Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram, objShell
+dim oShell, oShellEnv, strShell, computerName, oAPI, objFSO, skey
+
+'Generate random File Extension
+
+Dim max,min,rand
+max=999
+min=7
+Randomize
+rand = Int((max-min+1)*Rnd+min)
+WSCript.Sleep 2000
+'WScript.echo rand
+
+Set oArgs=Wscript.Arguments
+
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+
+'Flush Agent Cache
+
+Dim MoveFldr
+
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+If objfso.FolderExists("C:\Program Files\System Center Operations Manager 2007\Health Service State") Then
+MoveFldr = "RENAME ""C:\Program Files\System Center Operations Manager 2007\Health Service State"" ""Health Service State." &amp;amp; rand &amp;amp; """"
+'WScript.echo "Renaming SCOM 2007 Health Service Folder on " &amp;amp; computerName
+Else
+MoveFldr =  "RENAME ""c:\Program Files\Microsoft Monitoring Agent\Agent\Health Service State"" ""Health Service State." &amp;amp; rand &amp;amp; """"
+'WScript.echo "Renaming SCOM 2012 Health Service Folder on " &amp;amp; computerName
+End If
+WSCript.Sleep 2000
+
+'Restart HealthService
+
+strCommand = "cmd /c net stop HealthService &amp; " &amp; MoveFldr &amp; " &amp; cmd /c net start HealthService"
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+Call oAPI.LogScriptEvent("RS_FLUSH.vbs", 1001, 4, "Attempting to restart the Health Service after Agent cache flushed")
+
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_("Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+
+Set strShell = objWMIService.ExecMethod("Win32_Process", "Create", objProgram)
+
+'WSCript.Sleep 2000
+WScript.echo "Attempting to restart the Health Service after Agent cache flushed on " &amp;amp; computerName
+
+  </ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="Management.Group.Information.Restart.SCOM.Agent.Task" Accessibility="Public" Target="Management.Group.Information.Class" Enabled="true" Timeout="300" Remotable="true">
+        <Category>Maintenance</Category>
+        <WriteAction ID="WA" TypeID="Windows!Microsoft.Windows.ScriptWriteAction">
+          <ScriptName>RestartSCOMAgent.vbs</ScriptName>
+          <Arguments />
+          <ScriptBody>
+Option Explicit
+'On Error Resume Next
+Dim oArgs, objMSConfig, objWMIService, objProcess, strCommand, objProgram
+dim oShell, oShellEnv, strShell, computerName, oAPI
+Set oArgs=Wscript.Arguments
+Set oShell = WScript.CreateObject("WScript.Shell")
+Set oAPI = CreateObject("MOM.ScriptAPI")
+set oShellEnv = oShell.Environment("Process")
+computerName = oShellEnv("ComputerName")
+strCommand = "cmd /c net stop HealthService &amp; cmd /c net start HealthService"
+'wscript.echo strCommand
+Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+Call oAPI.LogScriptEvent("RestartHS.vbs", 1007, 4, "Attempting to restart the Health Service")
+Set objProcess = objWMIService.Get("Win32_Process")
+Set objProgram = objProcess.Methods_("Create").InParameters.SpawnInstance_
+objProgram.CommandLine = strCommand
+Set strShell = objWMIService.ExecMethod("Win32_Process", "Create", objProgram)
+WScript.echo "Restarting SCOM Health Service on " &amp; computerName
+    
+  </ScriptBody>
+          <TimeoutSeconds>180</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+    </Tasks>
+  </Monitoring>
+  <Presentation>
+    <Views>
+      <View ID="Management.Group.Information.Management.Group.Information.View" Accessibility="Public" Target="Management.Group.Information.Class" TypeID="SC!Microsoft.SystemCenter.StateViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria>
+          <InMaintenanceMode>false</InMaintenanceMode>
+        </Criteria>
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="0" Width="100" Grouped="false" IsSortable="true" Visible="true" SortOrder="Descending" Sorted="true">
+            <Name>State</Name>
+            <Id>Management.Group.Information.Class</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="1" Width="100" Grouped="false" IsSortable="true" Visible="true" SortOrder="Descending" Sorted="true">
+            <Name>Maintenance Mode</Name>
+            <Id>InMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="2" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>Principal Name</Name>
+            <Id>PrincipalName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="3" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Management Group List</Name>
+            <Id>MGList</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="3" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Management Group List</Name>
+            <Id>MGList</Id>
+          </ColumnInfo>
+        </Presentation>
+      </View>
+    </Views>
+    <Folders>
+      <Folder ID="Management.Group.Information.Folder" Accessibility="Public" ParentFolder="SC!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+    <FolderItems>
+      <FolderItem ElementID="Management.Group.Information.Management.Group.Information.View" Folder="Management.Group.Information.Folder" />
+    </FolderItems>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Management.Group.Information.Class">
+          <Name>Management Group Information Class</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Class" SubElementID="MGList">
+          <Name>Management Groups Assigned</Name>
+          <Description>This Property contains the Management Groups that the computer is assigned</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Class" SubElementID="MSMembership">
+          <Name>Management Server Membership</Name>
+          <Description>This Property contains the Management Server that the computer is assigned</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Management.Server.Membership.Discovery">
+          <Name>Management Server Membership Discovery</Name>
+          <Description>Discovers the Management Server that the agent is assigned</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Management.Group.List.Discovery">
+          <Name>Management Group Info Management Group List Discovery</Name>
+          <Description>Discovers the Management Groups  that a Computer is assigned</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Folder">
+          <Name>Management Group Information</Name>
+          <Description></Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Server.Membership.Discovery.DS">
+          <Name>Management Server Membership Discovery - Data Source</Name>
+        </DisplayString>
+        <DisplayString ElementID="Management.Server.Membership.Discovery.DS" SubElementID="Override.MGName">
+          <Name>Management Group Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="Management.Server.Membership.Discovery.DS" SubElementID="Override.Frequency">
+          <Name>Frequency</Name>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Add.Management.Group.Task">
+          <Name>MGinfo - Add Management Group</Name>
+          <Description>Task Adds Management Group to  an agent</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Remove.Single.Management.Group.Task.">
+          <Name>MGInfo - Remove Single Management Group</Name>
+          <Description>Description for the new agent task.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Restart.Agent.and.Flush.Cache.Task">
+          <Name>MGInfo - Restart Agent and Flush the Cache</Name>
+          <Description>Description for the new agent task.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Restart.SCOM.Agent.Task">
+          <Name>MGInfo - Restart SCOM Agent</Name>
+          <Description>Task Restarts the SCOM Agent</Description>
+        </DisplayString>
+        <DisplayString ElementID="Management.Group.Information.Management.Group.Information.View">
+          <Name>Management Group Information</Name>
+          <Description>Displays all agents and thier assigned management groups</Description>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles></KnowledgeArticles>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
