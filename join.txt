@@ -1,0 +1,9 @@
+SELECT * from (
+
+SELECT ManagedEntityGenericView.DisplayName, ManagedEntityGenericView.AvailabilityLastModified
+ FROM ManagedEntityGenericView
+ INNER JOIN ManagedTypeView ON ManagedEntityGenericView.MonitoringClassId = ManagedTypeView.Id
+ WHERE (ManagedTypeView.Name = 'microsoft.systemCenter.agent') AND (ManagedEntityGenericView.IsAvailable = 0)
+ ) as X1 join (
+SELECT PrincipalName, MGList_1331B332_0E47_159B_69EA_180271514CA9 as MGName
+FROM MTV_Computer) as X2 on X1.DisplayName=X2.PrincipalName
