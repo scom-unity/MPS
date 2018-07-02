@@ -1,0 +1,135 @@
+# ==============================================================================================
+
+#
+
+# NAME: OpsMgr Overrides Report
+
+#
+
+# AUTHOR: Daniele Muscetta and Pete Zerger
+
+# DATE : 8/24/2010
+
+#
+
+# COMMENT: This report will output the overrides in your OpsMgr environment including
+
+# override settings, target, source rule/monitor and source management pack.
+
+# ==============================================================================================
+
+#---Save the following text as script "Export-Overrides.ps1"
+
+#define the path you want to export the CSV files to
+
+$exportpath = "c:\scripts\export\"
+
+#gets all UNSEALED MAnagement PAcks
+
+$mps = get-managementpack | where {$_.Sealed -eq $false}
+
+#loops thru them
+
+foreach ($mp in $mps)
+
+{
+
+$mpname = $mp.name
+
+Write-Host "Exporting Overrides info for Managemetn Pack: $mpname"
+
+#array to hold all overrides for this MP
+
+$MPRows = @()
+
+#Gets the actual override objects
+
+$overrides = $mp | get-override
+
+#loops thru those overrides in order to extract information from them
+
+foreach ($override in $overrides)
+
+{
+
+#Prepares an object to hold the result
+
+$obj = new-object System.Management.Automation.PSObject
+
+#clear up variables from previous cycles.
+
+$overrideName = $null
+
+$overrideProperty = $null
+
+$overrideValue = $null
+
+$overrideContext = $null
+
+$overrideContextInstance = $null
+
+$overrideRuleMonitor = $null
+
+# give proper values to variables for this cycle. this is what we can then output.
+
+$name = $mp.name
+
+$overrideName = $override.Name
+
+$overrideProperty = $override.Property
+
+$overrideValue = $override.Value
+
+trap { $overrideContext = ""; continue } $overrideContext = $override.Context.GetElement().DisplayName
+
+trap { $overrideContextInstance = ""; continue } $overrideContextInstance = (Get-MonitoringObject -Id $override.ContextInstance).DisplayName
+
+if ($override.Monitor -ne $null){
+
+$overrideRuleMonitor = $override.Monitor.GetElement().DisplayName
+
+} elseif ($override.Discovery -ne $null){
+
+$overrideRuleMonitor = $override.Discovery.GetElement().DisplayName
+
+} else {
+
+$overrideRuleMonitor = $override.Rule.GetElement().DisplayName
+
+}
+
+#fills the current object with those properties
+
+#$obj = $obj | add-member -membertype NoteProperty -name overrideName -value $overrideName -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideProperty -value $overrideProperty -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideValue -value $overrideValue -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideContext -value $overrideContext -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideContextInstance -value $overrideContextInstance -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideRuleMonitor -value $overrideRuleMonitor -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name MPName -value $name -passthru
+
+$obj = $obj | add-member -membertype NoteProperty -name overrideName -value $overrideName -passthru
+
+#adds this current override to the array
+
+$MPRows = $MPRows + $obj
+
+}
+
+#Store up the overrides for all packs to a single variable
+
+$MPRpt = $MPRpt + $MPRows
+
+}
+
+#exports cumulative list of overrides to a single CSV
+
+$filename = $exportpath + "overrides.csv"
+
+$MPRpt | Export-CSV -path $filename -notypeinfo
