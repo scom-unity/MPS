@@ -889,7 +889,7 @@ $ReportOutput += $Alerts  | Group-Object Name | Sort-object Count -desc | select
 # Get the Top 10 Repeating Alerts and put them into report
 write-host "Getting Top 10 Repeating Alerts - All Time" -ForegroundColor Yellow 
 $ReportOutput += "<h2>Top 10 Repeating Alerts</h2>"
-$ReportOutput += $Alerts | Sort -desc RepeatCount | select-object –first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
+$ReportOutput += $Alerts | Sort -desc RepeatCount | select-object -first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 }
 
 # Take all $ReportOutput and combine it with $Body to create completed HTML output
