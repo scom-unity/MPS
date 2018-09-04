@@ -169,7 +169,7 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AssetNo,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn Comments,([string])))
 
 foreach($agent in $greylinktomri){
-    $agtdata = $agent.displayname
+    $agtdata = $agent.displayname.split('.')[0]
     $mridata = $mrifile | ? {$_.ServerName -match $agtdata}
 
     if ($SCOM2012Version)
@@ -340,7 +340,7 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AssetNo,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn Comments,([string])))
 
 foreach($agent in $patchlinktomri){
-    $agtdata = $agent.displayname
+    $agtdata = $agent.displayname.split('.')[0]
     $mridata = $mrifile | ? {$_.ServerName -match $agtdata}
 
     if ($SCOM2012Version)
@@ -512,7 +512,7 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AssetNo,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn Comments,([string])))
 
 foreach($agent in $versionlinktomri){
-    $agtdata = $agent.displayname
+    $agtdata = $agent.displayname.split('.')[0]
     $mridata = $mrifile | ? {$_.ServerName -match $agtdata}
 
     if ($SCOM2012Version)
@@ -699,7 +699,7 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AssetNo,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn Comments,([string])))
 
 foreach($agent in $duallinktomri){
-    $agtdata = $agent.displayname
+    $agtdata = $agent.displayname.split('.')[0]
     $mridata = $mrifile | ? {$_.ServerName -match $agtdata}
 
     if ($SCOM2012Version)
