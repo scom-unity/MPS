@@ -100,9 +100,6 @@ $objects = Get-MonitoringObject -monitoringclass:$MSCAgent # | Where-Object {($_
 $AgentInformation = Get-MonitoringObject -monitoringclass:$MSCAgent
 }
 
-
-#*************************SCRIPT VARIABLES ENDS FROM HERE**************************
-
 #Get Management Group Name
 
 $MgName = $mgname.ManagementGroup.Name
@@ -112,6 +109,8 @@ $ReportOutput +=  "<p><H2>Management Group Name: $mgname</H2></p>"
 $agentcount = $objects.count
 $ReportOutput +=  "<p><H2>Agent Count in Management Group: $agentcount</H2></p>"
 $ReportOutput +=  "<p><u><H1>Migration Readiness and Agent Integrity:</H1></u></p>"
+
+#*************************SCRIPT VARIABLES ENDS FROM HERE**************************
 
 #*************************AGENT INFORMATION STARTS FROM HERE***********************
 
@@ -625,7 +624,6 @@ foreach($agent in $versionlinktomri){
 
 	}
 
-
 #*************************AGENT VERSION CHECK ENDS HERE****************************
 
 #*************************DUAL PATH AGENTS INFORMATION STARTS HERE*****************
@@ -633,29 +631,36 @@ foreach($agent in $versionlinktomri){
 if ($SCOM2012Version)
 {
 #Get All Non Dual Pathed Agents
+#Get Dual Homing Agent Information
+[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+$DHMGName = [Microsoft.VisualBasic.Interaction]::InputBox("Dual Homing - Please enter the Legacy SCOM 2007 Management Group Name", "SCOM 2007 Management Group Name", "SCOM 2007 MG2")
+$SearchPattern = '(' + $DHMGName + '\,)|(\,' + $DHMGName + '$)' 
 
 #Get the agent class and the each object that is dual pathed
 $MGIAgent = Get-SCClass -Name "Management.Group.Information.Class"
-$objects = Get-SCOMMonitoringObject -class:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notlike "*2012*"))}
-$TotalAgentsMissingDH = ($Objects | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notlike "*2012*"))}).Count
+$objects = Get-SCOMMonitoringObject -class:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notmatch $SearchPattern))}
+$TotalAgentsMissingDH = ($Objects | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notmatch $SearchPattern))}).Count
 
 #Get Agent Information
-$AgentInformation = Get-SCOMMonitoringObject -class:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notlike "*2012*"))}
-
+$AgentInformation = Get-SCOMMonitoringObject -class:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList'.value -notmatch $SearchPattern))}
 $duallinktomri = $AgentInformation
+
 }
 Elseif ($SCOM2007Version)
 {
 #Get All Non Dual Pathed Agents
+#Get Dual Homing Agent Information
+[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+$DHMGName = [Microsoft.VisualBasic.Interaction]::InputBox("Dual Homing - Please enter the New SCOM 2012 Management Group Name", "SCOM 2012 Management Group Name", "SCOM 2012 MG")
+$SearchPattern = '(' + $DHMGName + '\,)|(\,' + $DHMGName + '$)' 
 
 #Get the Agent Class and each object detail
 $MGIAgent = get-monitoringclass -name "Management.Group.Information.Class"
-$objects = Get-MonitoringObject -monitoringclass:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notlike "*2007*"))}
-$TotalAgentsMissingDH =  ($Objects | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notlike "*2007*"))}).Count
+$objects = Get-MonitoringObject -monitoringclass:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notmatch $SearchPattern))}
+$TotalAgentsMissingDH =  ($Objects | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notmatch $SearchPattern))}).Count
 
 #Get Agent Information
-$AgentInformation = Get-MonitoringObject -monitoringclass:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notlike "*2007*"))}
-
+$AgentInformation = Get-MonitoringObject -monitoringclass:$MGIAgent | Where-Object {(($_.InMaintenanceMode -eq $False) -and ($_.'[Management.Group.Information.Class].MGList' -notmatch $SearchPattern))}
 $duallinktomri = $AgentInformation
 }
 
@@ -699,8 +704,9 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AssetNo,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn Comments,([string])))
 
 foreach($agent in $duallinktomri){
-    $agtdata = $agent.displayname.split('.')[0]
-    $mridata = $mrifile | ? {$_.ServerName -match $agtdata}
+    $agtdata = $agent.displayname
+    $agtdhdata = $agent.displayname.split('.')[0]
+    $mridata = $mrifile | ? {$_.ServerName -match $agtdhdata}
 
     if ($SCOM2012Version)
     {
@@ -826,73 +832,88 @@ foreach($agent in $duallinktomri){
 	$ReportOutput +=  "<p><H2>Dual Pathing - Missing New Management Groups on Server:</H2></p>"
 	$ReportOutput +=  "<p><H3>Dual Pathing Not Applied Count: $TotalAgentsMissingDH</H3></p>"
 	$ReportOutput += $AgentTable | Sort-Object ServerName | Select DisplayName,PatchList,ProxyingEnabled,AgentVersion,DualHome,HealthState,AvailabilityLastModified,StateLastModified,InMaintenanceMode | ConvertTo-HTML -fragment
-
 	}
 
 #*************************DUAL PATH AGENTS INFORMATION ENDS HERE*******************
 
+#*************************ALERT ANALYSIS OVER LAST 24 HRS STARTS FROM HERE*********
+
 if ($SCOM2012Version)
 {
-# Get all alerts
-write-host "Getting all alerts" -ForegroundColor Yellow
-$Alerts = Get-SCOMAlert -Criteria 'ResolutionState < "255"'
-$AlertComp = Get-SCOMAlert
+# Get all alerts for the last 24 Hours
+write-host "Getting all alerts for the last 24 Hours" -ForegroundColor Yellow
+$Date = Get-Date
+$StartDate = Get-Date -Date $Date.adddays(-1) -Hour 12 -Minute 0 -Second 0
+$EndDate = Get-Date -Date $Date -Hour 12 -Minute 0 -Second 0
 
-# Get alerts for last 6 hour Comparison Criteria needed for BEM Switch Evidence
-write-host "Getting alerts for last 6 hours for BEM Switch" -ForegroundColor Yellow
-$ReportOutput += "<h2>All Alerts in the last 6 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
-$ReportOutput += $AlertComp | where {$_.LastModified -le (Get-Date).addhours(-6)} | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
+$Alerts = Get-SCOMAlert -Criteria 'ResolutionState < "255"' | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and $_.TimeRaised.ToLocalTime() -le $EndDate } 
+$AlertComp = Get-SCOMAlert | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and $_.TimeRaised.ToLocalTime() -le $EndDate } 
+
+# Get alerts for last 24 hour Comparison Criteria needed for BEM Switch Evidence
+write-host "Getting alerts for last 24 hours for BEM Switch" -ForegroundColor Yellow
+$ReportOutput += "<h2>All Alerts in the last 24 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
+$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
 
 # Get alerts for last 24 hours
 write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
 $ReportOutput += "<h2>Top 10 Alerts With Same Name - 24 hours</h2>"
-$ReportOutput += $Alerts | where {$_.LastModified -le (Get-Date).addhours(-24)} | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
+$ReportOutput += $Alerts | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
-$ReportOutput += "<h2>Top 10 Repeating Alerts - 24 hours</h2>"
-$ReportOutput += $Alerts | where {$_.LastModified -le (Get-Date).addhours(-24)} | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
+$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
+$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 
 # Get the Top 10 Unresolved alerts still in console and put them into report
-write-host "Getting Top 10 Unresolved Alerts With Same Name - All Time" -ForegroundColor Yellow 
-$ReportOutput += "<h2>Top 10 Unresolved Alerts</h2>"
+write-host "Getting Top 10 Unresolved Alerts With Same Name for last 24 hours" -ForegroundColor Yellow 
+$ReportOutput += "<h2>Top 10 Unresolved Alerts for last 24 hours</h2>"
 $ReportOutput += $Alerts  | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
 # Get the Top 10 Repeating Alerts and put them into report
-write-host "Getting Top 10 Repeating Alerts - All Time" -ForegroundColor Yellow 
-$ReportOutput += "<h2>Top 10 Repeating Alerts</h2>"
+write-host "Getting Top 10 Repeating Alerts for last 24 hours" -ForegroundColor Yellow 
+$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
 $ReportOutput += $Alerts | Sort -desc RepeatCount | select-object –first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 }
 Elseif ($SCOM2007Version)
 {
-# Get all alerts
-write-host "Getting all alerts" -ForegroundColor Yellow
-$Alerts = Get-Alert -Criteria 'ResolutionState < "255"'
-$AlertComp = Get-Alert
+# Get all alerts for the last 24 Hours
+write-host "Getting all alerts for the last 24 Hours" -ForegroundColor Yellow
+$Date = Get-Date
+$StartDate = Get-Date -Date $Date.adddays(-1) -Hour 12 -Minute 0 -Second 0
+$EndDate = Get-Date -Date $Date -Hour 12 -Minute 0 -Second 0
 
-# Get alerts for last 6 hour Comparison Criteria needed for BEM Switch Evidence
-write-host "Getting alerts for last 6 hours for BEM Switch" -ForegroundColor Yellow
-$ReportOutput += "<h2>All Alerts in the last 6 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
-$ReportOutput += $AlertComp | where {$_.LastModified -le (Get-Date).addhours(-6)} | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
+$Alerts = Get-Alert -Criteria 'ResolutionState < "255"' | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and $_.TimeRaised.ToLocalTime() -le $EndDate } 
+$AlertComp = Get-Alert | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and $_.TimeRaised.ToLocalTime() -le $EndDate } 
+
+# Get alerts for last 24 hour Comparison Criteria needed for BEM Switch Evidence
+write-host "Getting alerts for last 24 hours for BEM Switch" -ForegroundColor Yellow
+$ReportOutput += "<h2>All Alerts in the last 24 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
+$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
 
 # Get alerts for last 24 hours
 write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
 $ReportOutput += "<h2>Top 10 Alerts With Same Name - 24 hours</h2>"
-$ReportOutput += $Alerts | where {$_.LastModified -le (Get-Date).addhours(-24)} | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
+$ReportOutput += $Alerts | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
-$ReportOutput += "<h2>Top 10 Repeating Alerts - 24 hours</h2>"
-$ReportOutput += $Alerts | where {$_.LastModified -le (Get-Date).addhours(-24)} | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
+$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
+$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 
 # Get the Top 10 Unresolved alerts still in console and put them into report
-write-host "Getting Top 10 Unresolved Alerts With Same Name - All Time" -ForegroundColor Yellow 
-$ReportOutput += "<h2>Top 10 Unresolved Alerts</h2>"
+write-host "Getting Top 10 Unresolved Alerts With Same Name for last 24 hours" -ForegroundColor Yellow 
+$ReportOutput += "<h2>Top 10 Unresolved Alerts for last 24 hours</h2>"
 $ReportOutput += $Alerts  | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
 # Get the Top 10 Repeating Alerts and put them into report
-write-host "Getting Top 10 Repeating Alerts - All Time" -ForegroundColor Yellow 
-$ReportOutput += "<h2>Top 10 Repeating Alerts</h2>"
+write-host "Getting Top 10 Repeating Alerts for last 24 hours" -ForegroundColor Yellow 
+$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
 $ReportOutput += $Alerts | Sort -desc RepeatCount | select-object –first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 }
+
+#*************************ALERT ANALYSIS OVER LAST 24 HRS ENDS FROM HERE***********
+
+#*************************OUTPUT THE ENTIRE REPORT INFORMATION STARTS FROM HERE****
 
 # Take all $ReportOutput and combine it with $Body to create completed HTML output
 $Body = ConvertTo-HTML -head $Head -body "$ReportOutput"
 $time = (Get-Date).ToString("yyyyMMddhh")
 $Body | Out-File $filedir\$time.html
+
+#*************************OUTPUT THE ENTIRE REPORT INFORMATION ENDS FROM HERE******
