@@ -674,7 +674,7 @@ $AgentTable.Columns.Add((New-Object System.Data.DataColumn AvailabilityLastModif
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn StateLastModified,([string])))
 $AgentTable.Columns.Add((New-Object System.Data.DataColumn InMaintenanceMode,([string])))
 
-foreach($pagent in patchlinktomri){
+foreach($pagent in $patchlinktomri){
     $pagtdata = $pagent.displayname
     $hsdhdata = $hsdhdbfile | ? {$_.DisplayName -match $pagtdata}
 
