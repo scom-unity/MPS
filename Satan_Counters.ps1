@@ -324,7 +324,7 @@ foreach($scomagent in $hsfile)
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Building SCOM Object Reference Database” -status “Status: $i of $($hsfile.Count)” -PercentComplete (($i / $hsfile.count)*100)
+	Write-Progress -activity "Building SCOM Object Reference Database" -status "Status: $i of $($hsfile.Count)" -PercentComplete (($i / $hsfile.count)*100)
 	}
 
 $HSDHExport = $HSDHTable | Export-CSV -Path $filedir"\hsdh_file_raw.csv" -NoTypeInformation
@@ -402,7 +402,7 @@ foreach($mriobject in $hsdhdbfile)
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Building MRI Database and combining with SCOM Object Reference Database” -status “Status: $i of $($hsdhdbfile.Count)” -PercentComplete (($i / $hsdhdbfile.count)*100)
+	Write-Progress -activity "Building MRI Database and combining with SCOM Object Reference Database" -status "Status: $i of $($hsdhdbfile.Count)" -PercentComplete (($i / $hsdhdbfile.count)*100)
 	}
 
 $MigExport = $MigTable | Export-CSV -Path $filedir"\mig_file_raw.csv" -NoTypeInformation
@@ -520,7 +520,7 @@ foreach($gagent in $greylinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Grey Agent Detail” -status “Status: $i of $($greylinktomri.Count)” -PercentComplete (($i / $greylinktomri.count)*100)
+	Write-Progress -activity "Table Building: Grey Agent Detail" -status "Status: $i of $($greylinktomri.Count)" -PercentComplete (($i / $greylinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -569,7 +569,7 @@ foreach($gagent in $greylinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Grey Agent Detail” -status “Status: $i of $($greylinktomri.Count)” -PercentComplete (($i / $greylinktomri.count)*100)
+	Write-Progress -activity "Table Building: Grey Agent Detail" -status "Status: $i of $($greylinktomri.Count)" -PercentComplete (($i / $greylinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -686,7 +686,7 @@ foreach($pagent in $patchlinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Unpatched Agent Detail” -status “Status: $i of $($patchlinktomri.Count)” -PercentComplete (($i / $patchlinktomri.count)*100)
+	Write-Progress -activity "Table Building: Unpatched Agent Detail" -status "Status: $i of $($patchlinktomri.Count)" -PercentComplete (($i / $patchlinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -735,7 +735,7 @@ foreach($pagent in $patchlinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Unpatched Agent Detail” -status “Status: $i of $($patchlinktomri.Count)” -PercentComplete (($i / $patchlinktomri.count)*100)
+	Write-Progress -activity "Table Building: Unpatched Agent Detail" -status "Status: $i of $($patchlinktomri.Count)" -PercentComplete (($i / $patchlinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -852,7 +852,7 @@ foreach($vagent in $versionlinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Version Detail of Agent” -status “Status: $i of $($versionlinktomri.Count)” -PercentComplete (($i / $versionlinktomri.count)*100)
+	Write-Progress -activity "Table Building: Version Detail of Agent" -status "Status: $i of $($versionlinktomri.Count)" -PercentComplete (($i / $versionlinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -901,7 +901,7 @@ foreach($vagent in $versionlinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Version Detail of Agent” -status “Status: $i of $($versionlinktomri.Count)” -PercentComplete (($i / $versionlinktomri.count)*100)
+	Write-Progress -activity "Table Building: Version Detail of Agent" -status "Status: $i of $($versionlinktomri.Count)" -PercentComplete (($i / $versionlinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -1036,7 +1036,7 @@ foreach($dagent in $duallinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Agents that do not have Dual Homed Configuration” -status “Status: $i of $($duallinktomri.Count)” -PercentComplete (($i / $duallinktomri.count)*100)
+	Write-Progress -activity "Table Building: Agents that do not have Dual Homed Configuration" -status "Status: $i of $($duallinktomri.Count)" -PercentComplete (($i / $duallinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -1085,7 +1085,7 @@ foreach($dagent in $duallinktomri){
 
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Agents that do not have Dual Homed Configuration” -status “Status: $i of $($duallinktomri.Count)” -PercentComplete (($i / $duallinktomri.count)*100)
+	Write-Progress -activity "Table Building: Agents that do not have Dual Homed Configuration" -status "Status: $i of $($duallinktomri.Count)" -PercentComplete (($i / $duallinktomri.count)*100)
 	}
 
 #Write to Report 
@@ -1115,7 +1115,7 @@ $Alerts = Get-SCOMAlert -Criteria 'ResolutionState < "255"' | Where { $_.TimeRai
 foreach($alert in $alerts){
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Number of Open/Closed Alerts” -status “Status: $i of $($Alerts.Count)” -PercentComplete (($i / $Alerts.count)*100)
+	Write-Progress -activity "Table Building: Number of Open/Closed Alerts" -status "Status: $i of $($Alerts.Count)" -PercentComplete (($i / $Alerts.count)*100)
 	}
 
 $AlertComp = Get-SCOMAlert | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and $_.TimeRaised.ToLocalTime() -le $EndDate }
@@ -1126,7 +1126,7 @@ $AlertComp = Get-SCOMAlert | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate 
 foreach($alert in $alertcomp){
 #Update Counter and Write Progress
 	$i++
-	Write-Progress -activity “Table Building: Number of Open Alerts” -status “Status: $i of $($Alertcomp.Count)” -PercentComplete (($i / $Alertcomp.count)*100)
+	Write-Progress -activity "Table Building: Number of Open Alerts" -status "Status: $i of $($Alertcomp.Count)" -PercentComplete (($i / $Alertcomp.count)*100)
 	}
 
 # Get alerts for last 24 hour Comparison Criteria needed for BEM Switch Evidence
