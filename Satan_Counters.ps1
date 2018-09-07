@@ -1139,9 +1139,6 @@ write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
 $ReportOutput += "<h2>Top 10 Alerts With Same Name - 24 hours</h2>"
 $ReportOutput += $Alerts | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
-$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
-$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
-
 # Get the Top 10 Unresolved alerts still in console and put them into report
 write-host "Getting Top 10 Unresolved Alerts With Same Name for last 24 hours" -ForegroundColor Yellow 
 $ReportOutput += "<h2>Top 10 Unresolved Alerts for last 24 hours</h2>"
@@ -1150,7 +1147,7 @@ $ReportOutput += $Alerts  | Group-Object Name | Sort-object Count -desc | select
 # Get the Top 10 Repeating Alerts and put them into report
 write-host "Getting Top 10 Repeating Alerts for last 24 hours" -ForegroundColor Yellow 
 $ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
-$ReportOutput += $Alerts | Sort -desc RepeatCount | select-object -first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
+$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 }
 Elseif ($SCOM2007Version)
 {
@@ -1173,9 +1170,6 @@ write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
 $ReportOutput += "<h2>Top 10 Alerts With Same Name - 24 hours</h2>"
 $ReportOutput += $Alerts | Group-Object Name | Sort-object Count -desc | select-Object -first 10 Count, Name | ConvertTo-HTML -fragment
 
-$ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
-$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
-
 # Get the Top 10 Unresolved alerts still in console and put them into report
 write-host "Getting Top 10 Unresolved Alerts With Same Name for last 24 hours" -ForegroundColor Yellow 
 $ReportOutput += "<h2>Top 10 Unresolved Alerts for last 24 hours</h2>"
@@ -1184,7 +1178,7 @@ $ReportOutput += $Alerts  | Group-Object Name | Sort-object Count -desc | select
 # Get the Top 10 Repeating Alerts and put them into report
 write-host "Getting Top 10 Repeating Alerts for last 24 hours" -ForegroundColor Yellow 
 $ReportOutput += "<h2>Top 10 Repeating Alerts for last 24 hours</h2>"
-$ReportOutput += $Alerts | Sort -desc RepeatCount | select-object -first 10 Name, RepeatCount, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
+$ReportOutput += $Alerts | Sort-Object -desc RepeatCount | select-Object -first 10 RepeatCount, Name, MonitoringObjectPath, Description | ConvertTo-HTML -fragment
 }
 
 #*************************ALERT ANALYSIS OVER LAST 24 HRS ENDS FROM HERE***********
