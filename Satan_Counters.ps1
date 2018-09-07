@@ -1191,10 +1191,20 @@ $ReportOutput += $Alerts | Sort -desc RepeatCount | select-object -first 10 Name
 
 #*************************OUTPUT THE ENTIRE REPORT INFORMATION STARTS FROM HERE****
 
+if ($SCOM2012Version)
+{
 # Take all $ReportOutput and combine it with $Body to create completed HTML output
 $Body = ConvertTo-HTML -head $Head -body "$ReportOutput"
 $time = (Get-Date).ToString("yyyyMMddhh")
-$Body | Out-File $filedir\$time.html
+$Body | Out-File $filedir\$time"_2012".html
+}
+Elseif ($SCOM2007Version)
+{
+# Take all $ReportOutput and combine it with $Body to create completed HTML output
+$Body = ConvertTo-HTML -head $Head -body "$ReportOutput"
+$time = (Get-Date).ToString("yyyyMMddhh")
+$Body | Out-File $filedir\$time"_2007".html
+}
 
 #*************************OUTPUT THE ENTIRE REPORT INFORMATION ENDS FROM HERE******
 
