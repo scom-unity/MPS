@@ -1132,7 +1132,7 @@ foreach($alert in $alertcomp){
 # Get alerts for last 24 hour Comparison Criteria needed for BEM Switch Evidence
 write-host "Getting alerts for last 24 hours for BEM Switch" -ForegroundColor Yellow
 $ReportOutput += "<h2>All Alerts in the last 24 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
-$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
+$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object -Unique TimeRaised -desc | ConvertTo-HTML -fragment
 
 # Get alerts for last 24 hours
 write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
@@ -1163,7 +1163,7 @@ $AlertComp = Get-Alert | Where { $_.TimeRaised.ToLocalTime() -ge $StartDate -and
 # Get alerts for last 24 hour Comparison Criteria needed for BEM Switch Evidence
 write-host "Getting alerts for last 24 hours for BEM Switch" -ForegroundColor Yellow
 $ReportOutput += "<h2>All Alerts in the last 24 hours Comparison Criteria needed for BEM Switch Evidence</h2>"
-$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object TimeRaised -desc | ConvertTo-HTML -fragment
+$ReportOutput += $AlertComp | Select TimeRaised,MonitoringObjectDisplayName,Name,Description,Priority,Severity,ID | Sort-object -Unique TimeRaised -desc | ConvertTo-HTML -fragment
 
 # Get alerts for last 24 hours
 write-host "Getting alerts for last 24 hours" -ForegroundColor Yellow
