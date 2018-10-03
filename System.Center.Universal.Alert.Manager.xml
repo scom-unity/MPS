@@ -1,0 +1,1164 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>System.Center.Universal.Alert.Manager</ID>
+      <Version>3.4.5.0</Version>
+    </Identity>
+    <Name>System Center 2012 Universal Alert Manager</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8432.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Rules>
+      <Rule ID="Active.Directory.Alert.Manager.3.8.Rule" Enabled="false" Target="SystemCenter!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Operations</Category>
+        <DataSources>
+          <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+            <Scheduler>
+              <SimpleReccuringSchedule>
+                <Interval Unit="Minutes">15</Interval>
+              </SimpleReccuringSchedule>
+              <ExcludeDates />
+            </Scheduler>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="ExecuteCommand" TypeID="System!System.CommandExecuter">
+            <ApplicationName>%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe</ApplicationName>
+            <WorkingDirectory>%MOMROOT%</WorkingDirectory>
+            <CommandLine>-Command "&amp; '$File/AD_AM_3_8.ps1$'"</CommandLine>
+            <TimeoutSeconds>300</TimeoutSeconds>
+            <RequireOutput>true</RequireOutput>
+            <Files>
+              <File>
+                <Name>AD_AM_3_8.ps1</Name>
+                <Contents>
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 3 hours and repeat count being less than 8
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("AD Replication is occurring slowly","KCC cannot compute a replication path","All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC","AD Replication Monitoring - Time skew detected","DC has failed to synchronize its naming context with replication partners","Machine account policy failure - Active Directory GPO lookup failure","Group Policy processing aborted because a filter check for the GPO failed")
+
+# Rules covered by Active Directory Alert Manager are listed below:
+# AD Replication is occurring slowly
+# KCC cannot compute a replication path
+# All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC
+# AD Replication Monitoring - Time skew detected
+# DC has failed to synchronize its naming context with replication partners
+# Machine account policy failure - Active Directory GPO lookup failure
+# Group Policy processing aborted because a filter check for the GPO failed
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+
+# If the alert is older than 3 hours and the repeat count is less than 8 - Close the alert
+
+$AlertCount = $alerts.Count
+$AlertCheck = $AlertCount -gt 0
+
+	if($AlertCheck -like 'true'){
+
+	foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 3
+	$AlertRC = $Alert.RepeatCount -le 8
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 3 hours and the repeat count is greater than 8 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}
+
+#Create the event in Application Log
+		$msg = "SABMiller Active Directory Management Pack Alert Manager Script Completed Successfully"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Assignment") 
+    			$log.WriteEntry($msg,"Information",999) 
+			} 
+
+		Write-Eventlog
+
+		</Contents>
+                <Unicode>false</Unicode>
+              </File>
+            </Files>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Active.Directory.Alert.Manager.4.3.Rule" Enabled="false" Target="SystemCenter!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Operations</Category>
+        <DataSources>
+          <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+            <Scheduler>
+              <SimpleReccuringSchedule>
+                <Interval Unit="Minutes">15</Interval>
+              </SimpleReccuringSchedule>
+              <ExcludeDates />
+            </Scheduler>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="ExecuteCommand" TypeID="System!System.CommandExecuter">
+            <ApplicationName>%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe</ApplicationName>
+            <WorkingDirectory>%MOMROOT%</WorkingDirectory>
+            <CommandLine>-Command "&amp; '$File/AD_AM_4_3.ps1$'"</CommandLine>
+            <TimeoutSeconds>300</TimeoutSeconds>
+            <RequireOutput>true</RequireOutput>
+            <Files>
+              <File>
+                <Name>AD_AM_4_3.ps1</Name>
+                <Contents>
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 4 hours and repeat count being less than 3
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("DNS registrations of essential Domain controller records is failing")
+
+# Rules covered by Active Directory Alert Managerare listed below:
+# DNS registrations of essential Domain controller records is failing
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+
+# If the alert is older than 4 hours and the repeat count is less than 3 - Close the alert
+
+$AlertCount = $alerts.Count
+$AlertCheck = $AlertCount -gt 0
+
+	if($AlertCheck -like 'true'){
+
+	foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 4
+	$AlertRC = $Alert.RepeatCount -le 3
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 4 hours and the repeat count is greater than 3 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}
+
+#Create the event in Application Log
+		$msg = "SABMiller Active Directory Management Pack Alert Manager Script Completed Successfully"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Assignment") 
+    			$log.WriteEntry($msg,"Information",999) 
+			} 
+
+		Write-Eventlog
+
+		</Contents>
+                <Unicode>false</Unicode>
+              </File>
+            </Files>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Universal.Alert.Manager.Rule" Enabled="false" Target="SystemCenter!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Operations</Category>
+        <DataSources>
+          <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+            <Scheduler>
+              <SimpleReccuringSchedule>
+                <Interval Unit="Minutes">2</Interval>
+              </SimpleReccuringSchedule>
+              <ExcludeDates />
+            </Scheduler>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="ExecuteCommand" TypeID="System!System.CommandExecuter">
+            <ApplicationName>%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe</ApplicationName>
+            <WorkingDirectory>%MOMROOT%</WorkingDirectory>
+            <CommandLine>-Command "&amp; '$File/UniversalAlertManager.ps1$'"</CommandLine>
+            <TimeoutSeconds>110</TimeoutSeconds>
+            <RequireOutput>true</RequireOutput>
+            <Files>
+              <File>
+                <Name>UniversalAlertManager.ps1</Name>
+                <Contents>
+# Universal Alert Assignment developed by Mark Stone
+# Scom-Unity Ltd
+# 15 December 2014
+
+# Assign Alert to correct Priority and Resolution
+
+$Group = 'AD Domain Controller Group (Windows 2008 Server)'
+
+# Use this if you require the look up to allow for Alert Aging:
+
+$AlertAging = [DateTime]::UTCNow.AddMinutes(-7)
+
+$resState_High_DC = 101
+$resState_Med_DC = 102
+$resState_Low_DC = 103
+$resState_Pending_DC = 104
+$resState_High = 106
+$resState_Med = 107
+$resState_Low = 108
+$resState_Pending_MS = 104
+
+import-module OperationsManager
+
+#Get All Groups that relate to the generic $Groups lookup 
+#NOTE The group name must have a corresponding resolution state with the same name 
+
+$SCOMGroup = Get-SCOMGroup -DisplayName $Group
+$GroupInfo = $SCOMGroup | %{$_.GetMonitoringRelationshipObjects() | Select TargetObject,SourceMonitoringObject}
+
+# SCOM Alert Manager - Script assigns calls to correct Priority
+
+$alerts = get-scomalert -Criteria "ResolutionState = 0 AND TimeRaised &lt; '$AlertAging'"
+
+foreach ($Alert in $Alerts){
+
+#Retrieve Alert Information LIKE ComputerName Management Pack Name ID
+
+	$RuleID = $alert.MonitoringRuleId
+	$MonitorID = $alert.problemid
+	$MonitorAlert = $alert.IsMonitorAlert
+
+	if($MonitorAlert -like 'False'){
+	$Query = Get-SCOMRule -Id $RuleID
+	$MPName = (($Query).getmanagementpack()).DisplayName
+	}
+
+	elseif($MonitorAlert -like 'True'){
+	$Query = Get-SCOMMonitor -Id $MonitorID
+	$MPName = (($Query).getmanagementpack()).DisplayName
+	}
+
+#Get Target Type for CustomField1
+
+	$TargetQuery = $Query.Target
+	$TargetID = $TargetQuery.ID
+	$Target = Get-SCOMClass -Id $TargetID
+	$TargetName = $Target.DisplayName
+
+# Define Severity of Alert to match Service Manager for CustomField2
+
+	$SeveritySCOM = $Alert.Severity
+
+	$SeverityReplace = @{}
+
+	$SeverityReplace["Error"] = "High"
+	$SeverityReplace["Warning"] = "Medium"
+	$SeverityReplace["Information"] = "Low"
+
+	$Severity = $SeverityReplace["$SeveritySCOM"]
+
+# Define Priority of Alert to match Service Manager for CustomField3
+
+	$PrioritySCOM = $Alert.Priority
+
+	$PriorityReplace = @{}
+
+	$PriorityReplace["High"] = "High"
+	$PriorityReplace["Normal"] = "Medium"
+	$PriorityReplace["Low"] = "Low"
+
+	$Priority = $PriorityReplace["$PrioritySCOM"]
+
+#ManagedEntity Calculation - Used to match Group
+
+	$ManagedEntity = [string]$Alert.PrincipalName
+
+	$CheckNamePN = $ManagedEntity -match ".local"
+
+	if($CheckNamePN -like 'false')
+	{$ManagedEntityDN = [String]$Alert.MonitoringObjectDisplayName
+	$ManagedEntity = $ManagedEntityDN
+	}
+	
+	$CheckNameDN = $ManagedEntityDN -match ".local"
+
+	if(($CheckNameDN -like 'false') -and ($CheckNamePN -like 'false'))
+	{$ManagedEntityOP = [String]$Alert.MonitoringObjectPath
+	$ManagedEntity = $ManagedEntityOP
+	}
+
+	if(($CheckNameOP -like 'false') -and ($CheckNamePN -like 'false') -and ($CheckNameDN -like 'false'))
+	{$ManagedEntity = "Unclassified"
+	}
+
+	$CheckNetbiosDomainName = $alert.NetbiosDomainName -match "WorkGroup"
+
+	if($CheckNetbiosDomainName -like 'true'){
+	$ManagedEntity = [string]$Alert.PrincipalName
+	}
+
+	$ManagedEntity = $ManagedEntity.Split(".")[0]
+
+# Match the affected computer with the group from $Groups to define Resolution State to pass through to SCSM
+
+	$AlertMatch = $GroupInfo | ? {$_.TargetObject -match "$ManagedEntity"}
+	$ServerName = $AlertMatch.TargetObject
+	$ResGroup = $AlertMatch.SourceMonitoringObject
+	$CheckTargetObject = $AlertMatch.TargetObject.Displayname.length
+	$CheckGroup_DC = $CheckTargetObject -gt 0
+
+# Update Customfields 2 and 3 to prioritise the alert and provide Impact and Urgency details for SCORch
+# Note There is a single runbook that uses Customfields 2 and 3 and updates IR with the detail in these fields
+
+	$Alert.CustomField1 = ("$TargetName")
+	$Alert.CustomField2 = ("$Severity") 
+	$Alert.CustomField3 = ("$Priority") 
+	$Alert.CustomField4 = ("$MPName")
+	$alert.update("")
+
+# Change the ResolutionState in SCOM and allow the SCSM Connector to forward the alert
+
+#Domain Controllers
+
+	if($CheckGroup_DC -match "True"){
+	if(($alert.priority -eq "High") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_High_DC
+        	$alert.Update("High Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Normal") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_Med_DC
+        	$alert.Update("Medium Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Low") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_Pending_DC
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+
+	}
+
+	elseif(($alert.priority -eq "High") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Med_DC
+        	$alert.Update("Medium Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Normal") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Low_DC
+        	$alert.Update("Low Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Low") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Pending_DC
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+
+	}
+
+	elseif($alert.severity -eq "Information"){
+
+		$alert.ResolutionState = $resState_Pending_DC
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+	}}
+
+#Not Domain Controllers
+
+	if($CheckGroup_DC -match "false"){
+	if(($alert.priority -eq "High") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_High
+        	$alert.Update("High Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Normal") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_Med
+        	$alert.Update("Medium Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Low") -and ($alert.severity -eq "Error")){
+
+		$alert.ResolutionState = $resState_Pending_MS
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+
+	}
+
+	elseif(($alert.priority -eq "High") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Med
+        	$alert.Update("Medium Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Normal") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Low
+        	$alert.Update("Low Priority and Impact Alert")
+
+	}
+
+	elseif(($alert.priority -eq "Low") -and ($alert.severity -eq "Warning")){
+
+		$alert.ResolutionState = $resState_Pending_MS
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+
+	}
+
+	elseif($alert.severity -eq "Information"){
+
+		$alert.ResolutionState = $resState_Pending_MS
+        	$alert.Update("Call is low Priority and pending closure or escalation")
+	}}
+
+
+	}
+
+# Create the event in Application Log
+		$msg = "Alerts have been prioritised according to SABMiller Auto-Classification. SABMiller Alert Auto-Assignment Successful"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Assignment") 
+    			$log.WriteEntry($msg,"Information",100) 
+			} 
+
+		Write-Eventlog</Contents>
+                <Unicode>false</Unicode>
+              </File>
+            </Files>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Universal.Alert.Manager.DC.Corrector.Rule" Enabled="false" Target="SystemCenter!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Operations</Category>
+        <DataSources>
+          <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+            <Scheduler>
+              <SimpleReccuringSchedule>
+                <Interval Unit="Minutes">15</Interval>
+              </SimpleReccuringSchedule>
+              <ExcludeDates />
+            </Scheduler>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="ExecuteCommand" TypeID="System!System.CommandExecuter">
+            <ApplicationName>%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe</ApplicationName>
+            <WorkingDirectory>%MOMROOT%</WorkingDirectory>
+            <CommandLine>-Command "&amp; '$File/UAM_DCEscalater.ps1$'"</CommandLine>
+            <TimeoutSeconds>120</TimeoutSeconds>
+            <RequireOutput>true</RequireOutput>
+            <Files>
+              <File>
+                <Name>UAM_DCEscalater.ps1</Name>
+                <Contents>
+# Alert Assignment developed by Mark Stone
+# Scom-Unity Ltd 
+# 25 December 2014
+
+# ReAssign All DC Alerts to Resolution X
+
+$criteria = "ResolutionState &gt; 100 AND ResolutionState &lt; 105"
+$resState_High_DC = 101
+$resState_Med_DC = 102
+$resState_Low_DC = 103
+$resState_Pending_DC = 104
+$resState_Closed = 255
+$resState_Investigate = 100
+
+import-module OperationsManager
+
+#Repeat Count Check Synchronisation and Call Classification Check
+
+$RepCounts = Get-SCOMAlert -Criteria $criteria
+
+foreach ($RepCount in $RepCounts){ 
+
+	if(($RepCount.repeatCount -gt 0) -and ($RepCount.resolutionstate -eq $resState_Pending_DC)){
+
+		$RepCount.ResolutionState = $resState_Investigate
+        	$RepCount.Update("Updated to New State for Reclassification")	
+
+	}
+
+	
+	if(($RepCount.repeatCount -ge 10) -and ($RepCount.resolutionstate -ne $resState_High_DC)){
+
+		$RepCount.ResolutionState = $resState_High_DC
+        	$RepCount.Update("Updated to Priority High")	
+
+	}
+
+	if(($RepCount.repeatCount -lt 10) -and ($RepCount.repeatCount -gt 0) -and ($RepCount.resolutionstate -ne $resState_Med_DC)){
+
+		$RepCount.ResolutionState = $resState_Med_DC
+        	$RepCount.Update("Updated to Priority Medium")	
+
+	}
+
+	$Date2Hours = [DateTime]::UTCNow.AddHours(-2)
+	if(($RepCount.TimeRaised -le $Date2Hours ) -and ($RepCount.resolutionstate -eq $resState_Low_DC) -and ($RepCount.repeatCount -eq 0)){
+
+		$RepCount.ResolutionState = $resState_Closed
+        	$RepCount.Update("DC Alert has been autoclosed due to criteria matching No Repeat Count and Low Priority")	
+
+	}
+
+	$Date2Hours = [DateTime]::UTCNow.AddHours(-2)
+	if(($RepCount.TimeRaised -le $Date2Hours ) -and ($RepCount.resolutionstate -eq $resState_Pending_DC) -and ($RepCount.repeatCount -eq 0)){
+
+		$RepCount.ResolutionState = $resState_Closed
+        	$RepCount.Update("DC Alert has been autoclosed due to criteria matching No Repeat Count and Low Priority")	
+
+	}
+
+}
+
+# Create the event in Application Log
+		$msg = "Any DC alert that is not in the correct resolution state has been updated. SABMiller Alert Correction Complete"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Correction") 
+    			$log.WriteEntry($msg,"Information",100) 
+			} 
+
+		Write-Eventlog </Contents>
+                <Unicode>false</Unicode>
+              </File>
+            </Files>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Universal.Alert.Manager.MS.Corrector.Rule" Enabled="false" Target="SystemCenter!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Operations</Category>
+        <DataSources>
+          <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+            <Scheduler>
+              <SimpleReccuringSchedule>
+                <Interval Unit="Minutes">15</Interval>
+              </SimpleReccuringSchedule>
+              <ExcludeDates />
+            </Scheduler>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="ExecuteCommand" TypeID="System!System.CommandExecuter">
+            <ApplicationName>%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe</ApplicationName>
+            <WorkingDirectory>%MOMROOT%</WorkingDirectory>
+            <CommandLine>-Command "&amp; '$File/UAM_MSEscalater.ps1$'"</CommandLine>
+            <TimeoutSeconds>120</TimeoutSeconds>
+            <RequireOutput>true</RequireOutput>
+            <Files>
+              <File>
+                <Name>UAM_MSEscalater.ps1</Name>
+                <Contents>
+# Alert Assignment developed by Mark Stone
+# Scom-Unity Ltd 
+# 25 December 2014
+
+
+# ReAssign All MS Alerts to Resolution X
+
+$criteria = "ResolutionState &gt; 105 AND ResolutionState &lt; 110"
+$resState_High = 106
+$resState_Med = 107
+$resState_Low = 108
+$resState_Pending = 109
+$resState_Closed = 255
+$resState_Investigate = 100
+
+import-module OperationsManager
+
+#Repeat Count Check Synchronisation and Call Classification Check
+
+$RepCounts = Get-SCOMAlert -Criteria $criteria
+
+foreach ($RepCount in $RepCounts){ 
+
+	if(($RepCount.repeatCount -gt 0) -and ($RepCount.resolutionstate -eq $resState_Pending)){
+
+		$RepCount.ResolutionState = $resState_Investigate
+        	$RepCount.Update("Updated to New State for Reclassification")	
+
+	}
+	
+	if(($RepCount.repeatCount -ge 10) -and ($RepCount.resolutionstate -ne $resState_High)){
+
+		$RepCount.ResolutionState = $resState_High
+        	$RepCount.Update("Updated to Priority High")	
+
+	}
+
+	if(($RepCount.repeatCount -lt 10) -and ($RepCount.repeatCount -gt 0) -and ($RepCount.resolutionstate -ne $resState_Med)){
+
+		$RepCount.ResolutionState = $resState_Med
+        	$RepCount.Update("Updated to Priority Medium")	
+
+	}
+
+	$Date2Hours = [DateTime]::UTCNow.AddHours(-2)
+	if(($RepCount.TimeRaised -le $Date2Hours) -and ($RepCount.resolutionstate -eq $resState_Low) -and ($RepCount.repeatCount -eq 0)){
+
+		$RepCount.ResolutionState = $resState_Closed
+        	$RepCount.Update("MS Alert has been autoclosed due to criteria matching No Repeat Count and Low Priority")	
+
+	}
+
+	$Date2Hours = [DateTime]::UTCNow.AddHours(-2)
+	if(($RepCount.TimeRaised -le $Date2Hours ) -and ($RepCount.resolutionstate -eq $resState_Pending) -and ($RepCount.repeatCount -eq 0)){
+
+		$RepCount.ResolutionState = $resState_Closed
+        	$RepCount.Update("DC Alert has been autoclosed due to criteria matching No Repeat Count and Low Priority")	
+
+	}
+
+
+}
+
+# Create the event in Application Log
+		$msg = "Any MS alert that is not in the correct resolution state has been updated. SABMiller Alert Correction Complete"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Correction") 
+    			$log.WriteEntry($msg,"Information",100) 
+			} 
+
+		Write-Eventlog </Contents>
+                <Unicode>false</Unicode>
+              </File>
+            </Files>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+    </Rules>
+    <Overrides>
+      <RulePropertyOverride ID="OverrideForRuleActiveDirectoryAlertManager38RuleForContextMicrosoftSystemCenterHealthServicee48845e6564b4a5fa0fe48ef7c78525c" Context="SystemCenter!Microsoft.SystemCenter.HealthService" ContextInstance="2db1a160-ed90-8f23-6c9b-ab63232a3e2c" Enforced="false" Rule="Active.Directory.Alert.Manager.3.8.Rule" Property="Enabled">
+        <Value>true</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="OverrideForRuleActiveDirectoryAlertManager43RuleForContextMicrosoftSystemCenterHealthService68bb2de896f94e1db80826ef1703a8ee" Context="SystemCenter!Microsoft.SystemCenter.HealthService" ContextInstance="2db1a160-ed90-8f23-6c9b-ab63232a3e2c" Enforced="false" Rule="Active.Directory.Alert.Manager.4.3.Rule" Property="Enabled">
+        <Value>true</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="OverrideForRuleUniversalAlertManagerRuleForContextMicrosoftSystemCenterHealthService86b378aeb72f419a80352cb0cef1c8ce" Context="SystemCenter!Microsoft.SystemCenter.HealthService" ContextInstance="6953a3c5-523b-8d9f-b90e-733f3c0e8616" Enforced="false" Rule="Universal.Alert.Manager.Rule" Property="Enabled">
+        <Value>true</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="OverrideForRuleUniversalAlertManagerDCCorrectorRuleForContextMicrosoftSystemCenterHealthServiced527cfb4c3f54ec09c7d177ebef8969c" Context="SystemCenter!Microsoft.SystemCenter.HealthService" ContextInstance="6953a3c5-523b-8d9f-b90e-733f3c0e8616" Enforced="false" Rule="Universal.Alert.Manager.DC.Corrector.Rule" Property="Enabled">
+        <Value>true</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="OverrideForRuleUniversalAlertManagerMSCorrectorRuleForContextMicrosoftSystemCenterHealthService68f3893888354d7a905f93c3f730fbe9" Context="SystemCenter!Microsoft.SystemCenter.HealthService" ContextInstance="6953a3c5-523b-8d9f-b90e-733f3c0e8616" Enforced="false" Rule="Universal.Alert.Manager.MS.Corrector.Rule" Property="Enabled">
+        <Value>true</Value>
+      </RulePropertyOverride>
+    </Overrides>
+  </Monitoring>
+  <Presentation>
+    <Folders>
+      <Folder ID="System.Center.2012.Universal.Alert.Manager.Folder" Accessibility="Public" ParentFolder="SystemCenter!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="System.Center.Universal.Alert.Manager">
+          <Name>System Center 2012 Universal Alert Manager</Name>
+          <Description>Management Pack that contains multiple rules that run scripts to tidy up and prioritise alerts. The rules run powershell scripts that detect certian criteria and then move the alert into the right category for urgency and impact.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Center.2012.Universal.Alert.Manager.Folder">
+          <Name>System Center 2012 Universal Alert Manager</Name>
+        </DisplayString>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.3.8.Rule">
+          <Name>Active Directory Alert Manager - Repeat Count less than 8 in 3 hours</Name>
+          <Description>Powershell script that detects certain Active Directory Management Pack alerts and closes them according to the criteria shown below:
+
+
+
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 3 hours and repeat count being less than 8
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("AD Replication is occurring slowly","KCC cannot compute a replication path","All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC","AD Replication Monitoring - Time skew detected","DC has failed to synchronize its naming context with replication partners","Machine account policy failure - Active Directory GPO lookup failure","Group Policy processing aborted because a filter check for the GPO failed")
+
+# Rules covered by Active Directory Alert Manager are listed below:
+# AD Replication is occurring slowly
+# KCC cannot compute a replication path
+# All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC
+# AD Replication Monitoring - Time skew detected
+# DC has failed to synchronize its naming context with replication partners
+# Machine account policy failure - Active Directory GPO lookup failure
+# Group Policy processing aborted because a filter check for the GPO failed
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+
+# If the alert is older than 3 hours and the repeat count is less than 8 - Close the alert
+
+$AlertCount = $alerts.Count
+$AlertCheck = $AlertCount -gt 0
+
+	if($AlertCheck -like 'true'){
+
+	foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 3
+	$AlertRC = $Alert.RepeatCount -le 8
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 3 hours and the repeat count is greater than 8 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.4.3.Rule">
+          <Name>Active Directory Alert Manager - Repeat Count less than 3 in 4 hours</Name>
+          <Description>Powershell script that detects certain Active Directory Management Pack alerts and closes them according to the criteria shown below:
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 4 hours and repeat count being less than 3
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("DNS registrations of essential Domain controller records is failing")
+
+# Rules covered by Active Directory Alert Managerare listed below:
+# DNS registrations of essential Domain controller records is failing
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+
+# If the alert is older than 4 hours and the repeat count is less than 3 - Close the alert
+
+$AlertCount = $alerts.Count
+$AlertCheck = $AlertCount -gt 0
+
+	if($AlertCheck -like 'true'){
+
+	foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 4
+	$AlertRC = $Alert.RepeatCount -le 3
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 4 hours and the repeat count is greater than 3 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}
+
+#Create the event in Application Log
+		$msg = "SABMiller Active Directory Management Pack Alert Manager Script Completed Successfully"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Assignment") 
+    			$log.WriteEntry($msg,"Information",999) 
+			} 
+
+		Write-Eventlog</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.Rule">
+          <Name>Universal Alert Manager</Name>
+          <Description>Alert Manager that automatically assigns calls according to Reapeat Count and Priority</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.DC.Corrector.Rule">
+          <Name>Universal Alert Manager Escalator / Re-Classify for Domain Controllers</Name>
+          <Description>Rule that looks at the open calls and checks for any changes in Repeat Count. If there are, it upgrades the call and if there is not, it closes all low priority calls</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.MS.Corrector.Rule">
+          <Name>Universal Alert Manager Escalator / Re-Classify for Member Servers</Name>
+          <Description>Rule that looks at the open calls and checks for any changes in Repeat Count. If there are, it upgrades the call and if there is not, it closes all low priority calls</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+    <LanguagePack ID="ENG" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.3.8.Rule">
+          <Name>Active Directory Alert Manager</Name>
+          <Description>Powershell script that detects certain Active Directory Management Pack alerts and closes them according to the criteria shown below:
+
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 3 hours and repeat count being less than 8
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("AD Replication is occurring slowly","KCC cannot compute a replication path","All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC","AD Replication Monitoring - Time skew detected","DC has failed to synchronize its naming context with replication partners","Machine account policy failure - Active Directory GPO lookup failure","Group Policy processing aborted because a filter check for the GPO failed")
+
+# Rules covered by Active Directory Alert Manager are listed below:
+# AD Replication is occurring slowly
+# KCC cannot compute a replication path
+# All of the replication partners for source DCs are failing to replicate. This indicates that no updates are being received on this DC
+# AD Replication Monitoring - Time skew detected
+# DC has failed to synchronize its naming context with replication partners
+# Machine account policy failure - Active Directory GPO lookup failure
+# Group Policy processing aborted because a filter check for the GPO failed")
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+# If the alert is older than 3 hours and the repeat count is less than 8 - Close the alert
+
+foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 3
+	$AlertRC = $Alert.RepeatCount -le 8
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 3 hours and the repeat count is greater than 3 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}
+
+#Create the event in Application Log
+		$msg = "SABMiller Active Directory Management Pack Alert Manager Script Completed Successfully"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+   </Description>
+        </DisplayString>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.3.8.Rule" SubElementID="ExecuteCommand">
+          <Name>Run Command</Name>
+        </DisplayString>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.3.8.Rule" SubElementID="Scheduler">
+          <Name>Scheduler</Name>
+        </DisplayString>
+        <DisplayString ElementID="Active.Directory.Alert.Manager.4.3.Rule">
+          <Name>Active Directory Alert Manager - Repeat Count less than 3 in 4 hours</Name>
+          <Description>Powershell script that detects certain Active Directory Management Pack alerts and closes them according to the criteria shown below:
+#########################################################################################################
+#													#
+# Active Directory Alert Manager Script for Active Directory Management Pack				#
+# Alerts are prioritised, closed, classified or elevated according to criteria listed in the query	#
+# Developed by Mark Stone - SCOM-Unity 2014								#
+#													#
+#########################################################################################################
+
+# Alerts that run every 15 minutes that require the metrics to be changed to accomodate the calculation
+# Alert Manager: Run every 15 Minutes and check for Time Raised being older than 4 hours and repeat count being less than 3
+
+# Active Directory Rules: All the rules that have been highlighted for being noisy and / or require automatic remediation or assignment to the correct resolution state for attention.
+# If you would like to add another rule, please just add the rule to the array below
+
+$rules = ("DNS registrations of essential Domain controller records is failing")
+
+# Rules covered by Active Directory Alert Managerare listed below:
+# DNS registrations of essential Domain controller records is failing
+
+# Create a Powershell Function to cycle through all the rules shown above:
+
+function f_AlertManager{
+
+# Import the SCOM 2012 Powershell Module for all rules
+
+import-module OperationsManager
+
+# Specify Time Variables for Calculation
+# Time in UTC - NOW
+
+$AlertTimeNow = [DateTime]::UTCNow
+
+# Time Window - Specifies the window for alert detection
+
+$AlertTimeWindow = [DateTime]::UTCNow.AddHours(-8)
+
+# Alert Query - Get all alerts that have a specific name, are not closed, do not have an SCSM ticket and in time window
+
+$alerts = Get-SCOMAlert | ? {(($_.Name -match $rule) -and ($_.ResolutionState -lt 255) -and ($_.TicketID -notmatch "e") -and ($_.TimeRaised -gt $AlertTimeWindow))}
+
+# Get all alerts from query above
+
+# If the alert is older than 4 hours and the repeat count is less than 3 - Close the alert
+
+$AlertCount = $alerts.Count
+$AlertCheck = $AlertCount -gt 0
+
+	if($AlertCheck -like 'true'){
+
+	foreach($Alert in $Alerts){
+	$TimeCalc = $AlertTimeNow.Subtract($alert.timeraised)
+	$TimeCalc = $TimeCalc.TotalHours
+	$TimeCheck = $TimeCalc -gt 4
+	$AlertRC = $Alert.RepeatCount -le 3
+	if($TimeCheck -like 'true' -AND $AlertRC -like 'true'){
+	$alert | set-scomalert -resolutionstate 255
+        $alert.Update("Alert Closed by AD Alert Manager")
+	}
+
+# If the alert is older than 4 hours and the repeat count is greater than 3 - Highlight call via change in Resolution State
+
+	elseif($TimeCheck -like 'true' -AND $AlertRC -like 'false'){
+	$alert | set-scomalert -resolutionstate 72
+        $alert.Update("P4 Ticket has been logged by AD Alert Manager")
+	}}}
+}
+
+foreach($rule in $rules){
+	f_AlertManager($Rule)
+	}
+
+#Create the event in Application Log
+		$msg = "SABMiller Active Directory Management Pack Alert Manager Script Completed Successfully"
+
+		function Write-EventLog 
+			{       
+    			$log = New-Object System.Diagnostics.EventLog  
+    			$log.set_log("Application")  
+    			$log.set_source("SCOMAlert_Assignment") 
+    			$log.WriteEntry($msg,"Information",999) 
+			} 
+
+		Write-Eventlog</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.Rule">
+          <Name>Universal Alert Manager</Name>
+          <Description>Alert Manager that automatically assigns calls according to Reapeat Count and Priority</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.DC.Corrector.Rule">
+          <Name>Universal Alert Manager Escalator / Re-Classify</Name>
+          <Description>Rule that looks at the open calls and checks for any changes in Repeat Count. If there are, it upgrades the call and if there is not, it closes all low priority calls</Description>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.Rule" SubElementID="Scheduler">
+          <Name>Scheduler</Name>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.Rule" SubElementID="ExecuteCommand">
+          <Name>Run Command</Name>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.DC.Corrector.Rule" SubElementID="ExecuteCommand">
+          <Name>Run Command</Name>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.DC.Corrector.Rule" SubElementID="Scheduler">
+          <Name>Scheduler</Name>
+        </DisplayString>
+        <DisplayString ElementID="Universal.Alert.Manager.MS.Corrector.Rule">
+          <Name>Universal Alert Manager Escalator / Re-Classify for Member Servers</Name>
+          <Description>Rule that looks at the open calls and checks for any changes in Repeat Count. If there are, it upgrades the call and if there is not, it closes all low priority calls</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
