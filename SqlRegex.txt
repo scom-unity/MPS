@@ -1,0 +1,8 @@
+SELECT Count(*) As Count FROM
+(
+select Patchlist
+, IIF(PatchList='','', CONVERT(int, SUBSTRING(PatchList, CHARINDEX('UR', PatchList) + 2 , CHARINDEX(' ', PatchList, CHARINDEX('UR', PatchList) + 2  )  - CHARINDEX('UR', PatchList)  -2))) as UR
+from MT_HealthService hs 
+inner join BaseManagedEntity bme on hs.BaseManagedEntityId = bme.BaseManagedEntityId
+) as X1  
+Where UR < '9'
