@@ -479,10 +479,10 @@ join (select ServerName, DisplayName as DatabaseName from (
                   <Width>1.62688cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.09972cm</Width>
+                  <Width>2.49118cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.47896cm</Width>
+                  <Width>3.01626cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>3.29375cm</Width>
@@ -1026,7 +1026,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <Top>10.70522cm</Top>
             <Left>0.36719cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23137cm</Width>
+            <Width>16.16013cm</Width>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -1055,7 +1055,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <Top>9.63779cm</Top>
             <Left>0.36717cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23131cm</Width>
+            <Width>16.16015cm</Width>
             <ZIndex>1</ZIndex>
             <Style>
               <Border>
@@ -1078,10 +1078,10 @@ join (select ServerName, DisplayName as DatabaseName from (
                   <Width>1.62688cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.09972cm</Width>
+                  <Width>2.4118cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.47896cm</Width>
+                  <Width>3.09563cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>3.29377cm</Width>
@@ -1623,9 +1623,9 @@ join (select ServerName, DisplayName as DatabaseName from (
             </TablixRowHierarchy>
             <DataSetName>DWFreeSpace</DataSetName>
             <Top>10.70522cm</Top>
-            <Left>18.38533cm</Left>
+            <Left>16.79783cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23132cm</Width>
+            <Width>16.16007cm</Width>
             <ZIndex>2</ZIndex>
             <Style>
               <Border>
@@ -1653,9 +1653,9 @@ join (select ServerName, DisplayName as DatabaseName from (
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>9.63779cm</Top>
-            <Left>18.38533cm</Left>
+            <Left>16.79783cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23129cm</Width>
+            <Width>16.16007cm</Width>
             <ZIndex>3</ZIndex>
             <Style>
               <Border>
@@ -1691,7 +1691,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <Top>0.49953cm</Top>
             <Left>0.36725cm</Left>
             <Height>1.10271cm</Height>
-            <Width>17.23131cm</Width>
+            <Width>16.16007cm</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -1781,7 +1781,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>1.35in</Width>
+                  <Width>1.23542in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1890,9 +1890,9 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             </TablixRowHierarchy>
             <DataSetName>Critical_Alerts</DataSetName>
             <Top>5.63114in</Top>
-            <Left>7.23832in</Left>
+            <Left>6.61332in</Left>
             <Height>0.4862in</Height>
-            <Width>1.35in</Width>
+            <Width>1.23542in</Width>
             <ZIndex>7</ZIndex>
             <Style>
               <Border>
@@ -1904,7 +1904,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>1.35in</Width>
+                  <Width>1.22961in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2012,10 +2012,10 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>Warning_Alerts</DataSetName>
-            <Top>5.63114in</Top>
-            <Left>8.65776in</Left>
+            <Top>5.63118in</Top>
+            <Left>7.86263in</Left>
             <Height>0.4862in</Height>
-            <Width>1.35in</Width>
+            <Width>1.22961in</Width>
             <ZIndex>8</ZIndex>
             <Style>
               <Border>
@@ -2079,7 +2079,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <Top>3.44932cm</Top>
             <Left>0.36725cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23125cm</Width>
+            <Width>16.16007cm</Width>
             <ZIndex>10</ZIndex>
             <Style>
               <Border>
@@ -2112,9 +2112,9 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>13.23567cm</Top>
-            <Left>18.38534cm</Left>
+            <Left>16.79784cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23118cm</Width>
+            <Width>16.16006cm</Width>
             <ZIndex>11</ZIndex>
             <Style>
               <Border>
@@ -2149,7 +2149,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <Top>13.23567cm</Top>
             <Left>0.3674cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23128cm</Width>
+            <Width>16.15992cm</Width>
             <ZIndex>12</ZIndex>
             <Style>
               <Border>
@@ -2166,7 +2166,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.21111cm</Width>
+                  <Width>2.40298cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2277,10 +2277,10 @@ IIF (fields!Count.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>AgentDown</DataSetName>
-            <Top>14.3031cm</Top>
-            <Left>33.40542cm</Left>
+            <Top>14.30325cm</Top>
+            <Left>30.55492cm</Left>
             <Height>1.23495cm</Height>
-            <Width>2.21111cm</Width>
+            <Width>2.40298cm</Width>
             <ZIndex>13</ZIndex>
             <Style>
               <Border>
@@ -2403,8 +2403,8 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>URCheck</DataSetName>
-            <Top>14.3031cm</Top>
-            <Left>28.39068cm</Left>
+            <Top>14.3032cm</Top>
+            <Left>25.61074cm</Left>
             <Height>1.235cm</Height>
             <Width>2.18546cm</Width>
             <ZIndex>14</ZIndex>
@@ -2418,7 +2418,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.4765cm</Width>
+                  <Width>2.68817cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2434,7 +2434,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>LEGACY AGENT</Value>
+                                  <Value>LEGACY AGENTS</Value>
                                   <Style>
                                     <FontFamily>Times New Roman</FontFamily>
                                     <FontSize>8pt</FontSize>
@@ -2529,10 +2529,10 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>WrongVersion</DataSetName>
-            <Top>14.30304cm</Top>
-            <Left>30.75253cm</Left>
+            <Top>14.3032cm</Top>
+            <Left>27.83148cm</Left>
             <Height>1.235cm</Height>
-            <Width>2.4765cm</Width>
+            <Width>2.68817cm</Width>
             <ZIndex>15</ZIndex>
             <Style>
               <Border>
@@ -2544,7 +2544,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.61819cm</Width>
+                  <Width>2.4459cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2652,10 +2652,10 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>AgentCount</DataSetName>
-            <Top>14.3031cm</Top>
-            <Left>25.5961cm</Left>
+            <Top>14.30315cm</Top>
+            <Left>23.12956cm</Left>
             <Height>1.235cm</Height>
-            <Width>2.61819cm</Width>
+            <Width>2.4459cm</Width>
             <ZIndex>16</ZIndex>
             <Style>
               <Border>
@@ -2683,9 +2683,9 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>3.44932cm</Top>
-            <Left>18.38536cm</Left>
+            <Left>16.79786cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23129cm</Width>
+            <Width>16.16004cm</Width>
             <ZIndex>17</ZIndex>
             <Style>
               <Border>
@@ -2705,7 +2705,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
                   <Width>11.07003cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>6.16125cm</Width>
+                  <Width>5.08999cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2884,7 +2884,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <Top>4.51675cm</Top>
             <Left>0.3673cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23128cm</Width>
+            <Width>16.16002cm</Width>
             <ZIndex>18</ZIndex>
             <Style>
               <Border>
@@ -2948,7 +2948,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <Top>7.19397cm</Top>
             <Left>0.36721cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23129cm</Width>
+            <Width>16.16011cm</Width>
             <ZIndex>20</ZIndex>
             <Style>
               <Border>
@@ -2968,13 +2968,13 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <Width>5.70621cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>6.15534cm</Width>
+                  <Width>5.34873cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>4.03395cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.33581cm</Width>
+                  <Width>1.07124cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -3067,7 +3067,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Center</TextAlign>
+                                <TextAlign>Left</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -3206,7 +3206,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Center</TextAlign>
+                                <TextAlign>Left</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -3285,7 +3285,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <Top>8.2614cm</Top>
             <Left>0.36719cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23131cm</Width>
+            <Width>16.16013cm</Width>
             <ZIndex>21</ZIndex>
             <Style>
               <Border>
@@ -3389,9 +3389,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>7.19397cm</Top>
-            <Left>18.38536cm</Left>
+            <Left>16.79786cm</Left>
             <Height>0.89104cm</Height>
-            <Width>17.23129cm</Width>
+            <Width>16.16004cm</Width>
             <ZIndex>23</ZIndex>
             <Style>
               <Border>
@@ -3411,13 +3411,13 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <Width>5.70621cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>6.15534cm</Width>
+                  <Width>5.3638cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>4.03395cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.33581cm</Width>
+                  <Width>1.0561cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -3510,7 +3510,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Center</TextAlign>
+                                <TextAlign>Left</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -3649,7 +3649,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Center</TextAlign>
+                                <TextAlign>Left</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -3726,9 +3726,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </TablixRowHierarchy>
             <DataSetName>DWDBBackup</DataSetName>
             <Top>8.2614cm</Top>
-            <Left>18.38534cm</Left>
+            <Left>16.79784cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23131cm</Width>
+            <Width>16.16006cm</Width>
             <ZIndex>24</ZIndex>
             <Style>
               <Border>
@@ -3824,8 +3824,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                 <ChartCategoryAxes>
                   <ChartAxis Name="Primary">
                     <Style>
-                      <FontFamily>Tahoma</FontFamily>
-                      <Color>DarkBlue</Color>
+                      <FontFamily>Times New Roman</FontFamily>
                     </Style>
                     <ChartAxisTitle>
                       <Caption />
@@ -3906,9 +3905,8 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                 <ChartValueAxes>
                   <ChartAxis Name="Primary">
                     <Style>
-                      <FontFamily>Tahoma</FontFamily>
+                      <FontFamily>Times New Roman</FontFamily>
                       <FontSize>12pt</FontSize>
-                      <Color>DarkBlue</Color>
                     </Style>
                     <ChartAxisTitle>
                       <Caption />
@@ -3990,10 +3988,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
               <ChartLegend Name="Default">
                 <Style>
                   <BackgroundGradientType>None</BackgroundGradientType>
-                  <FontFamily>Tahoma</FontFamily>
+                  <FontFamily>Times New Roman</FontFamily>
                   <FontSize>12pt</FontSize>
                   <FontWeight>Bold</FontWeight>
-                  <Color>DarkBlue</Color>
                 </Style>
                 <Position>BottomLeft</Position>
                 <DockOutsideChartArea>true</DockOutsideChartArea>
@@ -4030,7 +4027,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <Top>5.63114in</Top>
             <Left>0.14465in</Left>
             <Height>3.47237in</Height>
-            <Width>6.78397in</Width>
+            <Width>6.36217in</Width>
             <ZIndex>25</ZIndex>
             <Style>
               <Border>
@@ -4047,7 +4044,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <Width>11.07003cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>6.16125cm</Width>
+                  <Width>5.09005cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -4219,9 +4216,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </TablixRowHierarchy>
             <DataSetName>DBServers</DataSetName>
             <Top>4.51675cm</Top>
-            <Left>18.38532cm</Left>
+            <Left>16.79782cm</Left>
             <Height>1.2cm</Height>
-            <Width>17.23128cm</Width>
+            <Width>16.16008cm</Width>
             <ZIndex>26</ZIndex>
             <Style>
               <Border>
@@ -4230,10 +4227,10 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </Style>
           </Tablix>
         </ReportItems>
-        <Height>10.5in</Height>
+        <Height>9.33333in</Height>
         <Style />
       </Body>
-      <Width>14.75in</Width>
+      <Width>13in</Width>
       <Page>
         <PageHeight>29.7cm</PageHeight>
         <PageWidth>21cm</PageWidth>

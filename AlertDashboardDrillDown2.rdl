@@ -9,7 +9,7 @@
               <Width>5.4375in</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>8.17709in</Width>
+              <Width>6.27084in</Width>
             </TablixColumn>
             <TablixColumn>
               <Width>0.84835in</Width>
@@ -284,7 +284,7 @@
         <Top>0.52903in</Top>
         <Left>0.42333cm</Left>
         <Height>0.49417in</Height>
-        <Width>14.46294in</Width>
+        <Width>12.55669in</Width>
         <Style />
       </Tablix>
       <Textbox Name="textbox1">
@@ -319,13 +319,13 @@
         </Style>
       </Textbox>
     </ReportItems>
-    <Height>10.5in</Height>
+    <Height>8in</Height>
     <Style>
       <Border />
       <BackgroundColor>White</BackgroundColor>
     </Style>
   </Body>
-  <Width>14.75in</Width>
+  <Width>13in</Width>
   <Page>
     <LeftMargin>1in</LeftMargin>
     <RightMargin>1in</RightMargin>

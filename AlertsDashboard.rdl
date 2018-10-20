@@ -294,7 +294,7 @@
         <Top>0.6875in</Top>
         <Left>0.19083in</Left>
         <Height>5.04529in</Height>
-        <Width>14.36459in</Width>
+        <Width>12.76042in</Width>
         <Style>
           <Border>
             <Style>None</Style>
@@ -307,12 +307,12 @@
         <TablixBody>
           <TablixColumns>
             <TablixColumn>
-              <Width>1.53125in</Width>
+              <Width>1.17708in</Width>
             </TablixColumn>
           </TablixColumns>
           <TablixRows>
             <TablixRow>
-              <Height>0.73177in</Height>
+              <Height>0.65104in</Height>
               <TablixCells>
                 <TablixCell>
                   <CellContents>
@@ -605,7 +605,7 @@
               </TablixCells>
             </TablixRow>
             <TablixRow>
-              <Height>0.37761in</Height>
+              <Height>0.29688in</Height>
               <TablixCells>
                 <TablixCell>
                   <CellContents>
@@ -661,7 +661,7 @@
                 </GroupExpressions>
               </Group>
               <TablixHeader>
-                <Size>0.1224in</Size>
+                <Size>0.04167in</Size>
                 <CellContents>
                   <Textbox Name="NumberOfAlerts">
                     <CanGrow>true</CanGrow>
@@ -703,7 +703,7 @@
                     </SortExpression>
                   </SortExpressions>
                   <TablixHeader>
-                    <Size>0.35677in</Size>
+                    <Size>0.27604in</Size>
                     <CellContents>
                       <Textbox Name="AlertName">
                         <CanGrow>true</CanGrow>
@@ -760,8 +760,8 @@
         <DataSetName>NumAlerts</DataSetName>
         <Top>6.5557in</Top>
         <Left>0.19083in</Left>
-        <Height>1.58853in</Height>
-        <Width>1.53125in</Width>
+        <Height>1.26563in</Height>
+        <Width>1.17708in</Width>
         <ZIndex>1</ZIndex>
         <Style>
           <Border>
@@ -884,13 +884,13 @@
         </Style>
       </Textbox>
     </ReportItems>
-    <Height>10.5in</Height>
+    <Height>8in</Height>
     <Style>
       <Border />
       <BackgroundColor>White</BackgroundColor>
     </Style>
   </Body>
-  <Width>14.75in</Width>
+  <Width>13in</Width>
   <Page>
     <PageHeight>9in</PageHeight>
     <PageWidth>6in</PageWidth>

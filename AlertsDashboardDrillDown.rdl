@@ -39,10 +39,10 @@
               <Width>3.16667in</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>4.10415in</Width>
+              <Width>3.27082in</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>6.40624in</Width>
+              <Width>5.44791in</Width>
             </TablixColumn>
             <TablixColumn>
               <Width>0.74999in</Width>
@@ -374,7 +374,7 @@
         <Top>0.54403in</Top>
         <Left>0.17708in</Left>
         <Height>0.51041in</Height>
-        <Width>14.42705in</Width>
+        <Width>12.63538in</Width>
         <ZIndex>1</ZIndex>
         <Style>
           <Border>
@@ -383,13 +383,13 @@
         </Style>
       </Tablix>
     </ReportItems>
-    <Height>10.5in</Height>
+    <Height>8in</Height>
     <Style>
       <Border />
       <BackgroundColor>White</BackgroundColor>
     </Style>
   </Body>
-  <Width>14.75in</Width>
+  <Width>13in</Width>
   <Page>
     <LeftMargin>1in</LeftMargin>
     <RightMargin>1in</RightMargin>
