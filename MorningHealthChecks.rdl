@@ -3,17 +3,16 @@
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="OperationalDataBaseMain">
-      <Transaction>true</Transaction>
       <ConnectionProperties>
         <DataProvider>SQL</DataProvider>
-        <ConnectString>Data Source=HSBC-SCOM;Initial Catalog=OperationsManager</ConnectString>
+        <ConnectString>Data Source=hsbc-scom;Initial Catalog=OperationsManager</ConnectString>
         <IntegratedSecurity>true</IntegratedSecurity>
       </ConnectionProperties>
       <rd:SecurityType>Integrated</rd:SecurityType>
       <rd:DataSourceID>7412f9af-09c1-4a4b-aee0-a3f40976fa40</rd:DataSourceID>
     </DataSource>
     <DataSource Name="DataWarehouseMain">
-      <DataSourceReference>Data Warehouse Main</DataSourceReference>
+      <DataSourceReference>/Data Warehouse Main</DataSourceReference>
       <rd:SecurityType>None</rd:SecurityType>
       <rd:DataSourceID>ee67cd46-ce5b-4842-bd9e-ea4710630b21</rd:DataSourceID>
     </DataSource>
@@ -414,9 +413,7 @@ Order By Convert(varchar(13),RaisedDateTime +RIGHT(SYSDATETIMEOFFSET(), 5),20)</
     <DataSet Name="DBServers">
       <Query>
         <DataSourceName>OperationalDataBaseMain</DataSourceName>
-        <CommandText>
-
-SELECT * FROM (
+        <CommandText>SELECT * FROM (
 SELECT * from (
 SELECT bme.DisplayName, s.HealthState,  Right(Fullname, LEN(Fullname) - 27) as Server
 FROM state AS s, BaseManagedEntity as bme 
@@ -425,21 +422,24 @@ WHERE MonitorName = 'System.Health.EntityState') and FullName like 'Microsoft.Wi
 where S2.Server in (
 	select ServerName from (
 	Select iif(CHARINDEX(';',fullname)&lt;=0,fullname, Left(fullname, CHARINDEX(';',fullname)-1)) as ServerName, DisplayName, HealthState From
-	(Select Replace(bme.FullName,'Microsoft.SQLServer.Database:','') as FullName, bme.DisplayName, s.HealthState
+	(Select Replace(bme.FullName,'Microsoft.SQLServer.2014.Database:','') as FullName, bme.DisplayName, s.HealthState
 	from BaseManagedEntity as BME, State as S 
 	WHERE s.basemanagedentityid = bme.basemanagedentityid
-	and FullName like 'Microsoft.SQLServer.Database%' 
+	and FullName like 'Microsoft.SQLServer.2014.Database%' 
 	and Name like 'OperationsManager%') as DB 
 ) as S1
 group by ServerName) ) as S4
 join (select ServerName, DisplayName as DatabaseName from (
 	Select iif(CHARINDEX(';',fullname)&lt;=0,fullname, Left(fullname, CHARINDEX(';',fullname)-1)) as ServerName, DisplayName, HealthState From
-	(Select Replace(bme.FullName,'Microsoft.SQLServer.Database:','') as FullName, bme.DisplayName, s.HealthState
+	(Select Replace(bme.FullName,'Microsoft.SQLServer.2014.Database:','') as FullName, bme.DisplayName, s.HealthState
 	from BaseManagedEntity as BME, State as S 
 	WHERE s.basemanagedentityid = bme.basemanagedentityid
-	and FullName like 'Microsoft.SQLServer.Database%' 
+	and FullName like 'Microsoft.SQLServer.2014.Database%' 
 	and Name like 'OperationsManager%') as DB  ) as A1
-	group by ServerName, DisplayName) as X4 on S4.Server=X4.ServerName</CommandText>
+	group by ServerName, DisplayName
+	) as X4 on S4.Server=X4.ServerName
+	Order by ServerName Asc
+	</CommandText>
       </Query>
       <Fields>
         <Field Name="DisplayName">
@@ -464,6 +464,94 @@ join (select ServerName, DisplayName as DatabaseName from (
         </Field>
       </Fields>
     </DataSet>
+    <DataSet Name="Top_Alert_Count">
+      <Query>
+        <DataSourceName>OperationalDataBaseMain</DataSourceName>
+        <CommandText>SELECT TOP 5 SUM(1) AS AlertCount, AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
+FROM Alertview WITH (NOLOCK) 
+WHERE TimeRaised is not NULL 
+GROUP BY AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
+ORDER BY AlertCount DESC</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="AlertCount">
+          <DataField>AlertCount</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
+        </Field>
+        <Field Name="AlertStringName">
+          <DataField>AlertStringName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="AlertStringDescription">
+          <DataField>AlertStringDescription</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="MonitoringRuleId">
+          <DataField>MonitoringRuleId</DataField>
+          <rd:TypeName>System.Guid</rd:TypeName>
+        </Field>
+        <Field Name="Name">
+          <DataField>Name</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
+    <DataSet Name="Top_Alert_RepeatCount">
+      <Query>
+        <DataSourceName>OperationalDataBaseMain</DataSourceName>
+        <CommandText>SELECT TOP 5 SUM(RepeatCount+1) AS RepeatCount, AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
+FROM Alertview WITH (NOLOCK) 
+WHERE Timeraised is not NULL 
+GROUP BY AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
+ORDER BY RepeatCount DESC</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="RepeatCount">
+          <DataField>RepeatCount</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
+        </Field>
+        <Field Name="AlertStringName">
+          <DataField>AlertStringName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="AlertStringDescription">
+          <DataField>AlertStringDescription</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="MonitoringRuleId">
+          <DataField>MonitoringRuleId</DataField>
+          <rd:TypeName>System.Guid</rd:TypeName>
+        </Field>
+        <Field Name="Name">
+          <DataField>Name</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
+    <DataSet Name="Top_Events_by_Computer">
+      <Query>
+        <DataSourceName>OperationalDataBaseMain</DataSourceName>
+        <CommandText>SELECT top 5 LoggingComputer as ComputerName, COUNT(*) AS TotalEvents, Number as EventID 
+FROM EventallView with (NOLOCK) 
+GROUP BY LoggingComputer, Number 
+ORDER BY TotalEvents DESC
+</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="ComputerName">
+          <DataField>ComputerName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TotalEvents">
+          <DataField>TotalEvents</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
+        </Field>
+        <Field Name="EventID">
+          <DataField>EventID</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
   </DataSets>
   <ReportSections>
     <ReportSection>
@@ -473,7 +561,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.63702cm</Width>
+                  <Width>2.37244cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>1.62688cm</Width>
@@ -491,7 +579,7 @@ join (select ServerName, DisplayName as DatabaseName from (
                   <Width>2.0238cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.07124cm</Width>
+                  <Width>1.33582cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1072,7 +1160,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.63701cm</Width>
+                  <Width>3.21216cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>1.62688cm</Width>
@@ -1090,7 +1178,7 @@ join (select ServerName, DisplayName as DatabaseName from (
                   <Width>2.02373cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.07125cm</Width>
+                  <Width>1.38875cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1623,9 +1711,9 @@ join (select ServerName, DisplayName as DatabaseName from (
             </TablixRowHierarchy>
             <DataSetName>DWFreeSpace</DataSetName>
             <Top>10.70522cm</Top>
-            <Left>16.79783cm</Left>
+            <Left>16.91647cm</Left>
             <Height>1.2cm</Height>
-            <Width>16.16007cm</Width>
+            <Width>17.05272cm</Width>
             <ZIndex>2</ZIndex>
             <Style>
               <Border>
@@ -1653,9 +1741,9 @@ join (select ServerName, DisplayName as DatabaseName from (
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>9.63779cm</Top>
-            <Left>16.79783cm</Left>
+            <Left>16.91647cm</Left>
             <Height>0.89104cm</Height>
-            <Width>16.16007cm</Width>
+            <Width>17.05272cm</Width>
             <ZIndex>3</ZIndex>
             <Style>
               <Border>
@@ -1781,7 +1869,7 @@ join (select ServerName, DisplayName as DatabaseName from (
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>1.23542in</Width>
+                  <Width>1.27127in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1861,7 +1949,7 @@ join (select ServerName, DisplayName as DatabaseName from (
                               <Style>Solid</Style>
                             </Border>
                             <BackgroundColor>=iif(fields!ID.Value &lt;= "3000", "Green", 
-IIF(Fields!ID.Value &gt; "3000" AND Fields!ID.Value &gt;= "5000" ,"Gold",
+IIF(Fields!ID.Value &gt; "3000" AND Fields!ID.Value &lt;= "5000" ,"Gold",
 IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
 )))</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
@@ -1889,10 +1977,10 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>Critical_Alerts</DataSetName>
-            <Top>5.63114in</Top>
-            <Left>6.61332in</Left>
+            <Top>5.63118in</Top>
+            <Left>6.66001in</Left>
             <Height>0.4862in</Height>
-            <Width>1.23542in</Width>
+            <Width>1.27127in</Width>
             <ZIndex>7</ZIndex>
             <Style>
               <Border>
@@ -1904,7 +1992,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>1.22961in</Width>
+                  <Width>1.29794in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1984,7 +2072,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
                               <Style>Solid</Style>
                             </Border>
                             <BackgroundColor>=iif(fields!ID.Value &lt;= "3000", "Green", 
-IIF(Fields!ID.Value &gt; "3000" AND Fields!ID.Value &gt;= "5000" ,"Gold",
+IIF(Fields!ID.Value &gt; "3000" AND Fields!ID.Value &lt;= "5000" ,"Gold",
 IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
 )))</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
@@ -2013,9 +2101,9 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             </TablixRowHierarchy>
             <DataSetName>Warning_Alerts</DataSetName>
             <Top>5.63118in</Top>
-            <Left>7.86263in</Left>
+            <Left>7.95906in</Left>
             <Height>0.4862in</Height>
-            <Width>1.22961in</Width>
+            <Width>1.29794in</Width>
             <ZIndex>8</ZIndex>
             <Style>
               <Border>
@@ -2099,7 +2187,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>SCOM Alerts Check:</Value>
+                    <Value>SCOM Alerts and Agent Check:</Value>
                     <Style>
                       <FontFamily>Times New Roman</FontFamily>
                       <FontSize>18pt</FontSize>
@@ -2112,9 +2200,9 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>13.23567cm</Top>
-            <Left>16.79784cm</Left>
+            <Left>16.9165cm</Left>
             <Height>0.89104cm</Height>
-            <Width>16.16006cm</Width>
+            <Width>17.05269cm</Width>
             <ZIndex>11</ZIndex>
             <Style>
               <Border>
@@ -2166,7 +2254,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.40298cm</Width>
+                  <Width>2.31768cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2245,7 +2333,7 @@ IIF (fields!ID.Value &gt; "5000", "Red","Transparent"
                               <Style>Solid</Style>
                             </Border>
                             <BackgroundColor>=iif(fields!Count.Value &lt;= "25", "Green", 
-IIF(Fields!Count.Value &gt; "25" AND Fields!Count.Value &gt;= "50" ,"Gold",
+IIF(Fields!Count.Value &gt; "25" AND Fields!Count.Value &lt;= "50" ,"Gold",
 IIF (fields!Count.Value &gt; "50", "Red","Transparent"
 )))</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2277,10 +2365,10 @@ IIF (fields!Count.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>AgentDown</DataSetName>
-            <Top>14.30325cm</Top>
-            <Left>30.55492cm</Left>
+            <Top>14.3033cm</Top>
+            <Left>26.24396cm</Left>
             <Height>1.23495cm</Height>
-            <Width>2.40298cm</Width>
+            <Width>2.31768cm</Width>
             <ZIndex>13</ZIndex>
             <Style>
               <Border>
@@ -2292,7 +2380,7 @@ IIF (fields!Count.Value &gt; "50", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.18546cm</Width>
+                  <Width>2.27366cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2371,7 +2459,7 @@ IIF (fields!Count.Value &gt; "50", "Red","Transparent"
                               <Style>Solid</Style>
                             </Border>
                             <BackgroundColor>=iif(fields!Patch.Value &lt;= "25", "Green", 
-IIF(Fields!Patch.Value &gt; "25" AND Fields!Patch.Value &gt;= "50" ,"Gold",
+IIF(Fields!Patch.Value &gt; "25" AND Fields!Patch.Value &lt;= "50" ,"Gold",
 IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
 )))</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2403,10 +2491,10 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>URCheck</DataSetName>
-            <Top>14.3032cm</Top>
-            <Left>25.61074cm</Left>
+            <Top>14.3033cm</Top>
+            <Left>28.6322cm</Left>
             <Height>1.235cm</Height>
-            <Width>2.18546cm</Width>
+            <Width>2.27366cm</Width>
             <ZIndex>14</ZIndex>
             <Style>
               <Border>
@@ -2418,7 +2506,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.68817cm</Width>
+                  <Width>2.99278cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2497,7 +2585,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
                               <Style>Solid</Style>
                             </Border>
                             <BackgroundColor>=iif(fields!Patch.Value &lt;= "25", "Green", 
-IIF(Fields!Patch.Value &gt; "25" AND Fields!Patch.Value &gt;= "50" ,"Gold",
+IIF(Fields!Patch.Value &gt; "25" AND Fields!Patch.Value &lt;= "50" ,"Gold",
 IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
 )))</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2529,10 +2617,10 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>WrongVersion</DataSetName>
-            <Top>14.3032cm</Top>
-            <Left>27.83148cm</Left>
+            <Top>14.3033cm</Top>
+            <Left>30.97641cm</Left>
             <Height>1.235cm</Height>
-            <Width>2.68817cm</Width>
+            <Width>2.99278cm</Width>
             <ZIndex>15</ZIndex>
             <Style>
               <Border>
@@ -2544,7 +2632,7 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>2.4459cm</Width>
+                  <Width>2.59007cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2652,10 +2740,10 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </TablixRowHierarchy>
             <KeepTogether>true</KeepTogether>
             <DataSetName>AgentCount</DataSetName>
-            <Top>14.30315cm</Top>
-            <Left>23.12956cm</Left>
+            <Top>14.30325cm</Top>
+            <Left>23.58334cm</Left>
             <Height>1.235cm</Height>
-            <Width>2.4459cm</Width>
+            <Width>2.59007cm</Width>
             <ZIndex>16</ZIndex>
             <Style>
               <Border>
@@ -2683,9 +2771,9 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>3.44932cm</Top>
-            <Left>16.79786cm</Left>
+            <Left>16.9165cm</Left>
             <Height>0.89104cm</Height>
-            <Width>16.16004cm</Width>
+            <Width>17.05269cm</Width>
             <ZIndex>17</ZIndex>
             <Style>
               <Border>
@@ -2797,7 +2885,9 @@ IIF (fields!Patch.Value &gt; "50", "Red","Transparent"
                               <TextRuns>
                                 <TextRun>
                                   <Value>=Fields!Path.Value</Value>
-                                  <Style />
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style />
@@ -2968,13 +3058,13 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <Width>5.70621cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>5.34873cm</Width>
+                  <Width>5.08415cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>4.03395cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.07124cm</Width>
+                  <Width>1.33582cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -3389,9 +3479,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </Paragraphs>
             <rd:DefaultName>Textbox11</rd:DefaultName>
             <Top>7.19397cm</Top>
-            <Left>16.79786cm</Left>
+            <Left>16.9165cm</Left>
             <Height>0.89104cm</Height>
-            <Width>16.16004cm</Width>
+            <Width>17.05269cm</Width>
             <ZIndex>23</ZIndex>
             <Style>
               <Border>
@@ -3408,7 +3498,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>5.70621cm</Width>
+                  <Width>6.28136cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>5.3638cm</Width>
@@ -3417,7 +3507,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <Width>4.03395cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.0561cm</Width>
+                  <Width>1.3736cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -3726,9 +3816,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </TablixRowHierarchy>
             <DataSetName>DWDBBackup</DataSetName>
             <Top>8.2614cm</Top>
-            <Left>16.79784cm</Left>
+            <Left>16.91648cm</Left>
             <Height>1.2cm</Height>
-            <Width>16.16006cm</Width>
+            <Width>17.05271cm</Width>
             <ZIndex>24</ZIndex>
             <Style>
               <Border>
@@ -3990,7 +4080,6 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                   <BackgroundGradientType>None</BackgroundGradientType>
                   <FontFamily>Times New Roman</FontFamily>
                   <FontSize>12pt</FontSize>
-                  <FontWeight>Bold</FontWeight>
                 </Style>
                 <Position>BottomLeft</Position>
                 <DockOutsideChartArea>true</DockOutsideChartArea>
@@ -4026,7 +4115,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <DataSetName>Trend_Analysis</DataSetName>
             <Top>5.63114in</Top>
             <Left>0.14465in</Left>
-            <Height>3.47237in</Height>
+            <Height>5.76404in</Height>
             <Width>6.36217in</Width>
             <ZIndex>25</ZIndex>
             <Style>
@@ -4041,10 +4130,13 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>11.07003cm</Width>
+                  <Width>9.31749cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>5.09005cm</Width>
+                  <Width>5.15873cm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>2.57651cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -4072,6 +4164,42 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Textbox29</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox6">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>DATABASE</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Left</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox6</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -4136,13 +4264,49 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                               <TextRuns>
                                 <TextRun>
                                   <Value>=Fields!DisplayName.Value</Value>
-                                  <Style />
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style />
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>DisplayName</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="DatabaseName">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!DatabaseName.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Left</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>DatabaseName</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -4166,7 +4330,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
                               <TextRuns>
                                 <TextRun>
                                   <Value />
-                                  <Style />
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style />
@@ -4202,6 +4368,7 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
               <TablixMembers>
                 <TablixMember />
                 <TablixMember />
+                <TablixMember />
               </TablixMembers>
             </TablixColumnHierarchy>
             <TablixRowHierarchy>
@@ -4216,9 +4383,9 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
             </TablixRowHierarchy>
             <DataSetName>DBServers</DataSetName>
             <Top>4.51675cm</Top>
-            <Left>16.79782cm</Left>
+            <Left>16.91646cm</Left>
             <Height>1.2cm</Height>
-            <Width>16.16008cm</Width>
+            <Width>17.05273cm</Width>
             <ZIndex>26</ZIndex>
             <Style>
               <Border>
@@ -4226,11 +4393,747 @@ IIF(Fields!HealthState.Value="1" ,"Green" , "Transparent"
               </Border>
             </Style>
           </Tablix>
+          <Tablix Name="Tablix7">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>13.98936cm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>3.06334cm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox33">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>ALERT NAME</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox33</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox35">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>COUNT</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox35</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="AlertStringName">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AlertStringName.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>AlertStringName</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="AlertCount">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AlertCount.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>AlertCount</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <KeepWithGroup>After</KeepWithGroup>
+                </TablixMember>
+                <TablixMember>
+                  <Group Name="Details3" />
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>Top_Alert_Count</DataSetName>
+            <Top>16.5121cm</Top>
+            <Left>16.9165cm</Left>
+            <Height>1.2cm</Height>
+            <Width>17.05269cm</Width>
+            <ZIndex>27</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
+          <Textbox Name="Textbox25">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Top Alerts by Alert Count:</Value>
+                    <Style>
+                      <FontFamily>Times New Roman</FontFamily>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <TextDecoration>Underline</TextDecoration>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox15</rd:DefaultName>
+            <Top>15.71453cm</Top>
+            <Left>16.9165cm</Left>
+            <Height>0.72701cm</Height>
+            <Width>12.50125cm</Width>
+            <ZIndex>28</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Textbox Name="Textbox30">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Top Alerts by Repeat Count:</Value>
+                    <Style>
+                      <FontFamily>Times New Roman</FontFamily>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <TextDecoration>Underline</TextDecoration>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox15</rd:DefaultName>
+            <Top>17.78265cm</Top>
+            <Left>16.9165cm</Left>
+            <Height>0.72701cm</Height>
+            <Width>12.50125cm</Width>
+            <ZIndex>29</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Tablix Name="Tablix8">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>13.98936cm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>3.06334cm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox39">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>ALERT NAME</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox39</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox43">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>REPEAT COUNT</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox43</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="AlertStringName1">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AlertStringName.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>AlertStringName1</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="RepeatCount">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!RepeatCount.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>RepeatCount</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <KeepWithGroup>After</KeepWithGroup>
+                </TablixMember>
+                <TablixMember>
+                  <Group Name="Details12" />
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>Top_Alert_RepeatCount</DataSetName>
+            <Top>18.58022cm</Top>
+            <Left>16.9165cm</Left>
+            <Height>1.2cm</Height>
+            <Width>17.05269cm</Width>
+            <ZIndex>30</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
+          <Textbox Name="Textbox34">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Event Count by Computer:</Value>
+                    <Style>
+                      <FontFamily>Times New Roman</FontFamily>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <TextDecoration>Underline</TextDecoration>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox15</rd:DefaultName>
+            <Top>19.85078cm</Top>
+            <Left>16.91643cm</Left>
+            <Height>0.72701cm</Height>
+            <Width>12.50125cm</Width>
+            <ZIndex>31</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Tablix Name="Tablix13">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>6.81752cm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>7.1719cm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>3.06334cm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox49">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>COMPUTER NAME</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox49</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox51">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>EVENT ID</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox51</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox53">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>COUNT</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>Underline</TextDecoration>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox53</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ComputerName">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!ComputerName.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ComputerName</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="EventID">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!EventID.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>EventID</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="TotalEvents">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!TotalEvents.Value</Value>
+                                  <Style>
+                                    <FontFamily>Times New Roman</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>TotalEvents</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <KeepWithGroup>After</KeepWithGroup>
+                </TablixMember>
+                <TablixMember>
+                  <Group Name="Details13" />
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>Top_Events_by_Computer</DataSetName>
+            <Top>20.64834cm</Top>
+            <Left>16.91643cm</Left>
+            <Height>1.2cm</Height>
+            <Width>17.05276cm</Width>
+            <ZIndex>32</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
         </ReportItems>
-        <Height>9.33333in</Height>
+        <Height>11.48958in</Height>
         <Style />
       </Body>
-      <Width>13in</Width>
+      <Width>13.46745in</Width>
       <Page>
         <PageHeight>29.7cm</PageHeight>
         <PageWidth>21cm</PageWidth>
